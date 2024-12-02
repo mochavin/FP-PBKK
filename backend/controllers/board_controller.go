@@ -35,17 +35,43 @@ func CreateBoard(c *gin.Context) {
 	c.JSON(http.StatusCreated, board)
 }
 
+type BoardOwner struct {
+	Username string `json:"username"`
+	Email    string `json:"email"`
+}
+
+type BoardResponse struct {
+	ID      string     `json:"id"`
+	Name    string     `json:"name"`
+	OwnerID string     `json:"ownerId"`
+	Owner   BoardOwner `json:"owner"`
+}
+
 // GetAllBoards mendapatkan semua boards milik pengguna
 func GetAllBoards(c *gin.Context) {
 	userID, _ := c.Get("userID")
 
 	var boards []models.Board
-	if err := config.DB.Where("owner_id = ?", userID).Find(&boards).Error; err != nil {
+	if err := config.DB.Preload("Owner").Where("owner_id = ?", userID).Find(&boards).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get boards"})
 		return
 	}
 
-	c.JSON(http.StatusOK, boards)
+	// Map to response struct
+	boardResponses := make([]BoardResponse, len(boards))
+	for i, board := range boards {
+		boardResponses[i] = BoardResponse{
+			ID:      board.ID,
+			Name:    board.Name,
+			OwnerID: board.OwnerID,
+			Owner: BoardOwner{
+				Username: board.Owner.Username,
+				Email:    board.Owner.Email,
+			},
+		}
+	}
+
+	c.JSON(http.StatusOK, boardResponses)
 }
 
 // GetBoard mendapatkan board berdasarkan ID

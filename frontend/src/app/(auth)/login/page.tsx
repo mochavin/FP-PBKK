@@ -1,6 +1,6 @@
 "use client";
 import Cookies from "js-cookie";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import useSWRMutation from "swr/mutation";
 import { loginUser } from "@/lib/api";
@@ -16,6 +16,12 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
+  useEffect(() => {
+    if (Cookies.get('token')) {
+      router.replace('/boards');
+    }
+  }, [router]);
+
   const { trigger, isMutating, error } = useSWRMutation("/auth/login", () =>
     loginUser({ email, password })
   );
@@ -30,7 +36,7 @@ export default function LoginPage() {
       Cookies.set("token", data.token, { expires: 7, secure: true });
       toast.dismiss(loadingToast);
       toast.success("Login successful!");
-      router.push("/");
+      router.push("/boards");
     } catch (err) {
       toast.dismiss(loadingToast);
       toast.error("Login failed. Please check your credentials.");

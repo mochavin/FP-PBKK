@@ -1,3 +1,5 @@
+import Cookies from 'js-cookie';
+
 export async function loginUser(credentials: {
   email: string;
   password: string;
@@ -26,3 +28,18 @@ export async function registerUser(credentials: {
   if (!res.ok) throw new Error("Registration failed");
   return res.json();
 }
+
+export const fetcher = async (url: string) => {
+  const token = Cookies.get('token');
+  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}${url}/`, {
+    headers: {
+      'Authorization': `Bearer ${token}`,
+    },
+  });
+
+  if (!res.ok) {
+    throw new Error('Failed to fetch boards');
+  }
+
+  return res.json();
+};
