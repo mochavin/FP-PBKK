@@ -99,3 +99,65 @@ func DeleteBoard(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"message": "Board deleted successfully"})
 }
+
+// GetBoardWithLists gets a board with all its lists and cards
+func GetBoardWithLists(c *gin.Context) {
+	boardID := c.Param("boardId")
+
+	// Get board and check ownership
+	var board models.Board
+	if err := config.DB.Where("id = ?", boardID).First(&board).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Board not found"})
+		return
+	}
+
+	userID, _ := c.Get("userID")
+	if board.OwnerID != userID.(string) {
+		c.JSON(http.StatusForbidden, gin.H{"error": "Access denied"})
+		return
+	}
+
+	// Get all lists with cards
+	var lists []models.List
+	if err := config.DB.Where("board_id = ?", boardID).Order("position").Find(&lists).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get lists"})
+		return
+	}
+
+	// Build response
+	response := models.BoardFullResponse{
+		ID:    board.ID,
+		Name:  board.Name,
+		Lists: make([]models.ListResponse, 0),
+	}
+
+	for _, list := range lists {
+		// Get cards for this list
+		var cards []models.Card
+		if err := config.DB.Where("list_id = ?", list.ID).Order("position").Find(&cards).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get cards"})
+			return
+		}
+
+		// Build cards response
+		cardResponses := make([]models.CardResponse, len(cards))
+		for i, card := range cards {
+			cardResponses[i] = models.CardResponse{
+				ID:          card.ID,
+				Title:       card.Title,
+				Description: card.Description,
+				Position:    card.Position,
+			}
+		}
+
+		// Add list with its cards to response
+		response.Lists = append(response.Lists, models.ListResponse{
+			ID:       list.ID,
+			Name:     list.Name,
+			Position: list.Position,
+			Cards:    cardResponses,
+		})
+	}
+
+	c.JSON(http.StatusOK, response)
+}

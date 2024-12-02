@@ -33,6 +33,14 @@ func SetupRouter() *gin.Engine {
 		board.GET("/:boardId/lists/:listId", controllers.GetBoardList)
 		board.PUT("/:boardId/lists/:listId", controllers.UpdateBoardList)
 		board.DELETE("/:boardId/lists/:listId", controllers.DeleteBoardList)
+
+		board.POST("/:boardId/lists/:listId/cards", controllers.CreateCard)
+		board.GET("/:boardId/lists/:listId/cards", controllers.GetListCards)
+		board.GET("/:boardId/lists/:listId/cards/:cardId", controllers.GetCardByID)
+		board.PUT("/:boardId/lists/:listId/cards/:cardId", controllers.UpdateCard)
+		board.DELETE("/:boardId/lists/:listId/cards/:cardId", controllers.DeleteCard)
+
+		board.GET("/:boardId/full", controllers.GetBoardWithLists)
 	}
 
 	return router
