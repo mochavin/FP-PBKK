@@ -2,9 +2,12 @@
 package routes
 
 import (
+	"time"
 	"trello-backend/config"
 	"trello-backend/controllers"
 	"trello-backend/middlewares"
+
+	"github.com/gin-contrib/cors"
 
 	"github.com/gin-gonic/gin"
 )
@@ -12,6 +15,15 @@ import (
 func SetupRouter() *gin.Engine {
 	config.ConnectDB()
 	router := gin.Default()
+
+	router.Use(cors.New(cors.Config{
+		AllowOrigins:     []string{"http://localhost:3000"}, // Your frontend URL
+		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
+		ExposeHeaders:    []string{"Content-Length"},
+		AllowCredentials: true,
+		MaxAge:           12 * time.Hour,
+	}))
 
 	auth := router.Group("/auth")
 	{
