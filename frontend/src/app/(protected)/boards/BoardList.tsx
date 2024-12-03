@@ -159,7 +159,7 @@ export default function BoardList({ boards }: BoardListProps) {
                 </p>
               </CardContent>
               <CardFooter>
-                <Link href={`/boards/${board.id}`} passHref>
+                <Link href={`/boards/detail?boardId=${board.id}`} passHref>
                   <Button variant="outline" className="w-full">
                     Open Board
                   </Button>

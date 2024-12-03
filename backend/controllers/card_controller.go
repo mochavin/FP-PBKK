@@ -99,7 +99,7 @@ func UpdateCard(c *gin.Context) {
 	cardID := c.Param("cardId")
 
 	var input struct {
-		Title       string `json:"title" binding:"required"`
+		Title       string `json:"title"`
 		Description string `json:"description"`
 		Position    int    `json:"position"`
 	}
@@ -135,8 +135,12 @@ func UpdateCard(c *gin.Context) {
 	}
 
 	// Update card
-	card.Title = input.Title
-	card.Description = input.Description
+	if input.Title != "" {
+		card.Title = input.Title
+	}
+	if input.Description != "" {
+		card.Description = input.Description
+	}
 	card.Position = input.Position
 
 	if err := config.DB.Save(&card).Error; err != nil {

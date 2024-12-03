@@ -7,7 +7,7 @@ import { Board } from "@/app/types/board";
 import { LoadingState } from "@/components/LoadingState";
 
 const BoardsPage: React.FC = () => {
-  const { data: boards, error, isLoading } = useSWR<Board[]>("/board", fetcher);
+  const { data: boards, error, isLoading } = useSWR<Board[]>("/board/", fetcher);
 
   if (error) return <div>Failed to load boards</div>;
   if (isLoading) return <LoadingState />;
