@@ -203,22 +203,37 @@ func UpdateCard(c *gin.Context) {
 		}
 
 		oldPosition := card.Position
+		newPosition := input.Position
+
+		// Validate new position
 		if newPosition < 0 || newPosition >= len(cards) {
 			newPosition = len(cards) - 1
 		}
 
+		// Update positions if changed
 		if oldPosition != newPosition {
-			// Remove from old position and insert at new position
+			// Remove card from old position
 			cards = append(cards[:oldPosition], cards[oldPosition+1:]...)
+
+			// Insert at new position
 			cards = append(cards[:newPosition], append([]models.Card{card}, cards[newPosition:]...)...)
 
-			for i, cd := range cards {
-				cd.Position = i
-				if err := tx.Save(&cd).Error; err != nil {
+			// Update all positions
+			for i, card := range cards {
+				card.Position = i
+				if err := tx.Save(&card).Error; err != nil {
 					tx.Rollback()
 					c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update positions"})
 					return
 				}
+			}
+
+			// Update card position
+			card.Position = newPosition
+			if err := tx.Save(&card).Error; err != nil {
+				tx.Rollback()
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update card position"})
+				return
 			}
 		}
 	}
