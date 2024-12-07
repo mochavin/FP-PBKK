@@ -93,26 +93,15 @@ const KanbanPage: React.FC = () => {
       // TODO: update Card position and list
       if (!boardId) return;
 
-      // Call API to persist changes
       await updateCardBoardPosition(
         boardId,
-        destList.id,
-        draggableId,
-        destination.index
+        source.droppableId, // original list ID
+        draggableId, // card ID
+        {
+          position: destination.index,
+          newListId: destination.droppableId // new list ID
+        }
       );
-
-      // Update board positions if lists changed
-      if (source.droppableId !== destination.droppableId) {
-        // await fetch(`/board/${boardId}`, {
-        //   method: "PUT",
-        //   headers: {
-        //     "Content-Type": "application/json",
-        //   },
-        //   body: JSON.stringify({
-        //     position: destination.index,
-        //   }),
-        // });
-      }
 
       // Refresh data
       await mutate();

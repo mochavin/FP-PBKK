@@ -50,7 +50,12 @@ export const updateCardBoardPosition = async (
   boardId: string,
   listId: string,
   cardId: string,
-  position: number
+  updates: {
+    title?: string;
+    description?: string;
+    position: number;
+    newListId?: string;
+  }
 ) => {
   const res = await fetch(
     `${BASE_URL}/board/${boardId}/lists/${listId}/cards/${cardId}`,
@@ -60,9 +65,7 @@ export const updateCardBoardPosition = async (
         "Content-Type": "application/json",
         authorization: `Bearer ${Cookies.get("token")}`,
       },
-      body: JSON.stringify({
-        position: position,
-      }),
+      body: JSON.stringify(updates),
     }
   );
   if (!res.ok) throw new Error("Failed to update card position");
