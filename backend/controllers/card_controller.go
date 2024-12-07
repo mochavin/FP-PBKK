@@ -94,6 +94,14 @@ func GetListCards(c *gin.Context) {
 	c.JSON(http.StatusOK, cards)
 }
 
+type CardResponse struct {
+	ID          string `json:"id"`
+	Title       string `json:"title"`
+	Description string `json:"description"`
+	Position    int    `json:"position"`
+	ListID      string `json:"listId"`
+}
+
 // UpdateCard updates a specific card
 func UpdateCard(c *gin.Context) {
 	cardID := c.Param("cardId")
@@ -103,27 +111,36 @@ func UpdateCard(c *gin.Context) {
 		Description string `json:"description"`
 		Position    int    `json:"position"`
 	}
+
 	if err := c.ShouldBindJSON(&input); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input"})
 		return
 	}
 
+	// Start transaction
+	tx := config.DB.Begin()
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
+
 	// Get card and validate access
 	var card models.Card
-	if err := config.DB.Where("id = ?", cardID).First(&card).Error; err != nil {
+	if err := tx.Where("id = ?", cardID).First(&card).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Card not found"})
 		return
 	}
 
 	// Validate list and board access
 	var list models.List
-	if err := config.DB.Where("id = ?", card.ListID).First(&list).Error; err != nil {
+	if err := tx.Where("id = ?", card.ListID).First(&list).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "List not found"})
 		return
 	}
 
 	var board models.Board
-	if err := config.DB.Where("id = ?", list.BoardID).First(&board).Error; err != nil {
+	if err := tx.Where("id = ?", list.BoardID).First(&board).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Board not found"})
 		return
 	}
@@ -134,21 +151,71 @@ func UpdateCard(c *gin.Context) {
 		return
 	}
 
-	// Update card
+	// Get all cards in the list
+	var cards []models.Card
+	if err := tx.Where("list_id = ?", card.ListID).Order("position").Find(&cards).Error; err != nil {
+		tx.Rollback()
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get cards"})
+		return
+	}
+
+	oldPosition := card.Position
+	newPosition := input.Position
+
+	// Validate new position
+	if newPosition < 0 || newPosition >= len(cards) {
+		newPosition = len(cards) - 1
+	}
+
+	// Update positions if changed
+	if oldPosition != newPosition {
+		// Remove card from old position
+		cards = append(cards[:oldPosition], cards[oldPosition+1:]...)
+
+		// Insert at new position
+		cards = append(cards[:newPosition], append([]models.Card{card}, cards[newPosition:]...)...)
+
+		// Update all positions
+		for i, card := range cards {
+			card.Position = i
+			if err := tx.Save(&card).Error; err != nil {
+				tx.Rollback()
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update positions"})
+				return
+			}
+		}
+	}
+
+	// Update other card fields
 	if input.Title != "" {
 		card.Title = input.Title
 	}
 	if input.Description != "" {
 		card.Description = input.Description
 	}
-	card.Position = input.Position
+	card.Position = newPosition
 
-	if err := config.DB.Save(&card).Error; err != nil {
+	if err := tx.Save(&card).Error; err != nil {
+		tx.Rollback()
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update card"})
 		return
 	}
 
-	c.JSON(http.StatusOK, card)
+	if err := tx.Commit().Error; err != nil {
+		tx.Rollback()
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to commit transaction"})
+		return
+	}
+
+	response := CardResponse{
+		ID:          card.ID,
+		Title:       card.Title,
+		Description: card.Description,
+		Position:    card.Position,
+		ListID:      card.ListID,
+	}
+
+	c.JSON(http.StatusOK, response)
 }
 
 // DeleteCard deletes a specific card

@@ -91,10 +91,11 @@ const KanbanPage: React.FC = () => {
       setBoard(newBoard);
 
       // TODO: update Card position and list
+      if (!boardId) return;
 
       // Call API to persist changes
       await updateCardBoardPosition(
-        boardId!,
+        boardId,
         destList.id,
         draggableId,
         destination.index
@@ -164,18 +165,13 @@ const KanbanPage: React.FC = () => {
       console.error("Failed to delete list:", error);
     }
     toast.dismiss(loadingToast);
-    
   };
 
   return (
     <div>
       <div className="flex justify-between items-center my-4 mx-6">
         <h1 className="text-2xl font-bold">{board.name}</h1>
-        <Button
-          onClick={() => setIsAddListModalOpen(true)}
-        >
-          Add List
-        </Button>
+        <Button onClick={() => setIsAddListModalOpen(true)}>Add List</Button>
       </div>
       <KanbanBoard
         board={board}
