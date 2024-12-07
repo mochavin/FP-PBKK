@@ -11,14 +11,13 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
-import { useSWRConfig } from "swr";
+import { mutate, useSWRConfig } from "swr";
 import Cookies from "js-cookie";
 import toast from "react-hot-toast";
 
 export function CreateBoardCard() {
   const [boardName, setBoardName] = useState("");
   const [isOpen, setIsOpen] = useState(false);
-  const { mutate } = useSWRConfig();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,7 +33,7 @@ export function CreateBoardCard() {
 
       // Refresh the boards list
       toast.success(`Board ${boardName} created successfully`);
-      mutate("/board");
+      mutate("/board/");
       setBoardName("");
       setIsOpen(false);
     } catch (error) {

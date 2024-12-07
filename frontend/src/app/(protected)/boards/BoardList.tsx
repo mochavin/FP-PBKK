@@ -18,7 +18,7 @@ import { LayoutGrid, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { Board } from "@/app/types/board";
 import { CreateBoardCard } from "./CreateBoardCard";
-import { useSWRConfig } from "swr";
+import { mutate, useSWRConfig } from "swr";
 import Cookies from "js-cookie";
 import { toast } from "react-hot-toast";
 import { useState } from "react";
@@ -30,7 +30,6 @@ interface BoardListProps {
 }
 
 export default function BoardList({ boards }: BoardListProps) {
-  const { mutate } = useSWRConfig();
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [boardToDelete, setBoardToDelete] = useState<string | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -62,7 +61,7 @@ export default function BoardList({ boards }: BoardListProps) {
         throw new Error("Failed to delete board");
       }
 
-      mutate("/board");
+      mutate("/board/");
       toast.dismiss(loadingToast);
       toast.success("Board deleted successfully");
     } catch (error) {
@@ -106,7 +105,7 @@ export default function BoardList({ boards }: BoardListProps) {
         throw new Error("Failed to update board");
       }
 
-      mutate("/board");
+      mutate("/board/");
       toast.dismiss(loadingToast);
       toast.success(`Board ${newBoardName} updated successfully`);
     } catch (error) {
