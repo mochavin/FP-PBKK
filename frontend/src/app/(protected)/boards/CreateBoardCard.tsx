@@ -11,7 +11,6 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
-import { fetcher } from "@/lib/api";
 import { useSWRConfig } from "swr";
 import Cookies from "js-cookie";
 import toast from "react-hot-toast";

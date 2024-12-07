@@ -83,3 +83,21 @@ func Login(c *gin.Context) {
 		},
 	})
 }
+
+func GetCurrentUser(c *gin.Context) {
+	userID, _ := c.Get("userID")
+
+	var user models.User
+	if err := config.DB.Where("id = ?", userID).First(&user).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"user": gin.H{
+			"id":       user.ID,
+			"username": user.Username,
+			"email":    user.Email,
+		},
+	})
+}

@@ -14,7 +14,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus, LayoutGrid, Trash2 } from "lucide-react";
+import { LayoutGrid, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { Board } from "@/app/types/board";
 import { CreateBoardCard } from "./CreateBoardCard";

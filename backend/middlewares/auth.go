@@ -1,14 +1,32 @@
 package middlewares
 
 import (
+	"log"
 	"net/http"
+	"os"
 	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/joho/godotenv"
 )
 
-var JwtSecret = []byte("your_secret_key")
+func init() {
+	// Load .env file
+	if err := godotenv.Load(); err != nil {
+		log.Printf("Warning: .env file not found")
+	}
+}
+
+var JwtSecret []byte
+
+func InitJWTSecret() {
+	secret := os.Getenv("SUPABASE_JWT_SECRET")
+	if secret == "" {
+		log.Fatal("SUPABASE_JWT_SECRET environment variable is not set")
+	}
+	JwtSecret = []byte(secret)
+}
 
 func AuthMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {

@@ -1,5 +1,5 @@
 import React from "react";
-import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
+import { DragDropContext, Droppable, Draggable, DropResult } from "@hello-pangea/dnd";
 import { PlusIcon, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -22,7 +22,7 @@ interface Board {
 
 interface KanbanBoardProps {
   board: Board;
-  handleDragEnd: (result: any) => void;
+  handleDragEnd: (result: DropResult) => void;
   setSelectedListId: (listId: string) => void;
   setIsAddCardModalOpen: (isOpen: boolean) => void;
   onDeleteCard: (listId: string, cardId: string) => void;

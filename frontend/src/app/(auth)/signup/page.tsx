@@ -3,7 +3,6 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import useSWRMutation from "swr/mutation";
 import { registerUser } from "@/lib/api";
-import type { RegisterResponse } from "@/types/auth";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -26,7 +25,7 @@ export default function SignUpPage() {
     const loadingToast = toast.loading("Creating account...");
 
     try {
-      const data: RegisterResponse = await trigger();
+      await trigger();
       router.push("/login");
       toast.dismiss(loadingToast);
       toast.success("Account created successfully!");
