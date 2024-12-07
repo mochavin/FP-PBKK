@@ -20,9 +20,9 @@ const AddCardModal: React.FC<AddCardModalProps> = ({ isOpen, onClose, onSubmit }
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit(title, description);
+    await onSubmit(title, description);
     setTitle("");
     setDescription("");
   };

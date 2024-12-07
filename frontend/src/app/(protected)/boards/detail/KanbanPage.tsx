@@ -36,6 +36,7 @@ const KanbanPage: React.FC = () => {
   const handleAddCard = async (title: string, description: string) => {
     if (!selectedListId || !board) return;
 
+    const loadingToast = toast.loading("Adding card...");
     try {
       await createCard(board.id, selectedListId, {
         title,
@@ -44,10 +45,12 @@ const KanbanPage: React.FC = () => {
           board.lists.find((l) => l.id === selectedListId)?.cards.length || 0,
       });
 
-      mutate();
+      await mutate();
+      toast.dismiss(loadingToast);
       toast.success("Card added successfully");
       setIsAddCardModalOpen(false);
     } catch (error) {
+      toast.dismiss(loadingToast);
       toast.error("Failed to add card");
       console.error("Failed to add card:", error);
     }
@@ -111,7 +114,7 @@ const KanbanPage: React.FC = () => {
       }
 
       // Refresh data
-      mutate();
+      await mutate();
       toast.success("Card moved successfully");
     } catch (error) {
       // Rollback on error
@@ -122,40 +125,46 @@ const KanbanPage: React.FC = () => {
   };
 
   const handleAddList = async (listName: string) => {
+    const loadingToast = toast.loading("Adding list...");
     try {
       await createList(board.id, listName, board.lists.length);
-
-      mutate();
+      await mutate();
       toast.success("List added successfully");
     } catch (error) {
       toast.error("Failed to add list");
       console.error("Failed to add list:", error);
     }
+    toast.dismiss(loadingToast);
   };
 
   const handleDeleteCard = async (listId: string, cardId: string) => {
     if (!board) return;
 
+    const loadingToast = toast.loading("Deleting card...");
     try {
       await deleteCard(board.id, listId, cardId);
-      mutate();
+      await mutate();
       toast.success("Card deleted successfully");
     } catch (error) {
       toast.error("Failed to delete card");
       console.error("Failed to delete card:", error);
     }
+    toast.dismiss(loadingToast);
   };
 
   const handleDeleteList = async (listId: string) => {
+    const loadingToast = toast.loading("Deleting list...");
     try {
       await deleteList(board.id, listId);
-      mutate();
+      await mutate();
       toast.success("List deleted successfully");
     } catch (error) {
       // Handle error state
       toast.error("Failed to delete list");
       console.error("Failed to delete list:", error);
     }
+    toast.dismiss(loadingToast);
+    
   };
 
   return (
@@ -175,6 +184,7 @@ const KanbanPage: React.FC = () => {
         setIsAddCardModalOpen={setIsAddCardModalOpen}
         onDeleteCard={handleDeleteCard}
         onDeleteList={handleDeleteList}
+        setIsAddListModalOpen={setIsAddListModalOpen}
       />
 
       <AddListModal

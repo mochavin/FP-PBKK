@@ -10,10 +10,10 @@ interface AddListModalProps {
 const AddListModal: React.FC<AddListModalProps> = ({ isOpen, onClose, onAddList }) => {
   const [listName, setListName] = useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (listName.trim()) {
-      onAddList(listName);
+      await onAddList(listName);
       setListName('');
       onClose();
     }

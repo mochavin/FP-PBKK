@@ -1,7 +1,13 @@
 import React from "react";
-import { DragDropContext, Droppable, Draggable, DropResult } from "@hello-pangea/dnd";
+import {
+  DragDropContext,
+  Droppable,
+  Draggable,
+  DropResult,
+} from "@hello-pangea/dnd";
 import { PlusIcon, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import Image from "next/image";
 
 interface Card {
   id: string;
@@ -27,6 +33,7 @@ interface KanbanBoardProps {
   setIsAddCardModalOpen: (isOpen: boolean) => void;
   onDeleteCard: (listId: string, cardId: string) => void;
   onDeleteList: (listId: string) => void;
+  setIsAddListModalOpen: (isOpen: boolean) => void;
 }
 
 const KanbanBoard: React.FC<KanbanBoardProps> = ({
@@ -36,7 +43,31 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({
   setIsAddCardModalOpen,
   onDeleteCard,
   onDeleteList,
+  setIsAddListModalOpen,
 }) => {
+  if (board.lists.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center p-8 space-y-4 min-h-[400px] bg-gray-50 rounded-lg">
+        <Image
+          src="/empty-state.svg"
+          alt="Empty state"
+          width={96}
+          height={96}
+          className="text-gray-400"
+          priority
+        />{" "}
+        <h1 className="text-2xl font-semibold text-gray-800">No lists yet</h1>
+        <p className="text-gray-600 text-center max-w-sm">
+          Get started by creating your first list to organize your tasks
+        </p>
+        <Button onClick={() => setIsAddListModalOpen(true)}>
+          <PlusIcon className="w-5 h-5" />
+          <span>Create New List</span>
+        </Button>
+      </div>
+    );
+  }
+
   return (
     <DragDropContext onDragEnd={handleDragEnd}>
       <div className="flex gap-4 p-5 overflow-x-auto">
