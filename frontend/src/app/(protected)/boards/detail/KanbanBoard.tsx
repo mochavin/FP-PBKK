@@ -31,9 +31,10 @@ interface KanbanBoardProps {
   handleDragEnd: (result: DropResult) => void;
   setSelectedListId: (listId: string) => void;
   setIsAddCardModalOpen: (isOpen: boolean) => void;
-  onDeleteCard: (listId: string, cardId: string) => void;
   onDeleteList: (listId: string) => void;
   setIsAddListModalOpen: (isOpen: boolean) => void;
+  setIsDeleteCardModalOpen: (isOpen: boolean) => void;
+  setCardToDelete: (card: { listId: string; cardId: string; title: string } | null) => void;
 }
 
 const KanbanBoard: React.FC<KanbanBoardProps> = ({
@@ -41,9 +42,10 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({
   handleDragEnd,
   setSelectedListId,
   setIsAddCardModalOpen,
-  onDeleteCard,
   onDeleteList,
   setIsAddListModalOpen,
+  setIsDeleteCardModalOpen,
+  setCardToDelete,
 }) => {
   if (board.lists.length === 0) {
     return (
@@ -114,7 +116,14 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({
                         `}
                       >
                         <button
-                          onClick={() => onDeleteCard(list.id, card.id)}
+                          onClick={() => {
+                            setCardToDelete({
+                              listId: list.id,
+                              cardId: card.id,
+                              title: card.title,
+                            });
+                            setIsDeleteCardModalOpen(true);
+                          }}
                           className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 
                                      text-gray-500 hover:text-red-500 transition-opacity"
                         >

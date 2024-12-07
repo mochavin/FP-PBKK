@@ -18,6 +18,7 @@ import toast from "react-hot-toast";
 import AddListModal from "./AddListModal";
 import AddCardModal from "./AddCardModal";
 import { Button } from "@/components/ui/button";
+import DeleteCardModal from "./DeleteCardModal";
 
 const KanbanPage: React.FC = () => {
   const searchParams = useSearchParams();
@@ -31,6 +32,12 @@ const KanbanPage: React.FC = () => {
   const [board, setBoard] = React.useState<BoardDetail | null>(null);
   const [isAddListModalOpen, setIsAddListModalOpen] = React.useState(false);
   const [isAddCardModalOpen, setIsAddCardModalOpen] = useState(false);
+  const [isDeleteCardModalOpen, setIsDeleteCardModalOpen] = useState(false);
+  const [cardToDelete, setCardToDelete] = useState<{
+    listId: string;
+    cardId: string;
+    title: string;
+  } | null>(null);
   const [selectedListId, setSelectedListId] = useState<string | null>(null);
 
   const handleAddCard = async (title: string, description: string) => {
@@ -99,7 +106,7 @@ const KanbanPage: React.FC = () => {
         draggableId, // card ID
         {
           position: destination.index,
-          newListId: destination.droppableId // new list ID
+          newListId: destination.droppableId, // new list ID
         }
       );
 
@@ -125,6 +132,13 @@ const KanbanPage: React.FC = () => {
       console.error("Failed to add list:", error);
     }
     toast.dismiss(loadingToast);
+  };
+
+  const handleDeleteCardConfirm = async () => {
+    if (!cardToDelete) return;
+    await handleDeleteCard(cardToDelete.listId, cardToDelete.cardId);
+    setIsDeleteCardModalOpen(false);
+    setCardToDelete(null);
   };
 
   const handleDeleteCard = async (listId: string, cardId: string) => {
@@ -167,9 +181,10 @@ const KanbanPage: React.FC = () => {
         handleDragEnd={handleDragEnd}
         setSelectedListId={setSelectedListId}
         setIsAddCardModalOpen={setIsAddCardModalOpen}
-        onDeleteCard={handleDeleteCard}
         onDeleteList={handleDeleteList}
         setIsAddListModalOpen={setIsAddListModalOpen}
+        setCardToDelete={setCardToDelete}
+        setIsDeleteCardModalOpen={setIsDeleteCardModalOpen}
       />
 
       <AddListModal
@@ -182,6 +197,16 @@ const KanbanPage: React.FC = () => {
         isOpen={isAddCardModalOpen}
         onClose={() => setIsAddCardModalOpen(false)}
         onSubmit={handleAddCard}
+      />
+
+      <DeleteCardModal
+        isOpen={isDeleteCardModalOpen}
+        onClose={() => {
+          setIsDeleteCardModalOpen(false);
+          setCardToDelete(null);
+        }}
+        onSubmit={handleDeleteCardConfirm}
+        cardTitle={cardToDelete?.title}
       />
     </div>
   );
