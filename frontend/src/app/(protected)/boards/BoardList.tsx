@@ -34,7 +34,22 @@ export default function BoardList({ boards }: BoardListProps) {
   const [boardToDelete, setBoardToDelete] = useState<string | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [boardToEdit, setBoardToEdit] = useState<string | null>(null);
+  const [isEditMembersOpen, setIsEditMembersOpen] = useState(false);
+  const [boardToEditMembers, setBoardToEditMembers] = useState<string | null>(
+    null
+  );
+  const [members, setMembers] = useState<Array<string> | null>([
+    "John",
+    "Ben",
+    "Doyle",
+    "Marie",
+  ]);
   const [newBoardName, setNewBoardName] = useState("");
+
+  const openEditMembers = (boardId: string) => {
+    setBoardToEditMembers(boardId);
+    setIsEditMembersOpen(true);
+  };
 
   const openDeleteDialog = (boardId: string) => {
     setBoardToDelete(boardId);
@@ -154,15 +169,26 @@ export default function BoardList({ boards }: BoardListProps) {
               </CardHeader>
               <CardContent className="pt-4">
                 <p className="text-sm text-gray-600">
-                  Created by {board.owner.username}
+                  Board owner: {board.owner.username}
+                </p>
+                <p className="text-sm text-gray-600">
+                  Board members: {members?.toString()}
                 </p>
               </CardContent>
               <CardFooter>
-                <Link href={`/boards/detail?boardId=${board.id}`} passHref>
-                  <Button variant="outline" className="w-full">
-                    Open Board
+                <div className="flex gap-2">
+                  <Link href={`/boards/detail?boardId=${board.id}`} passHref>
+                    <Button variant="outline" className="w-full">
+                      Open Board
+                    </Button>
+                  </Link>
+                  <Button
+                    variant="outline"
+                    onClick={() => openEditMembers(board.id)}
+                  >
+                    Edit Members
                   </Button>
-                </Link>
+                </div>
               </CardFooter>
             </Card>
           ))}
@@ -205,6 +231,52 @@ export default function BoardList({ boards }: BoardListProps) {
               onChange={(e) => setNewBoardName(e.target.value)}
               placeholder="Board name"
             />
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setIsEditDialogOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="default"
+              onClick={handleUpdate}
+              disabled={!newBoardName.trim()}
+            >
+              Update
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* edit member dialog */}
+      <Dialog open={isEditMembersOpen} onOpenChange={setIsEditMembersOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Board Members</DialogTitle>
+            <DialogDescription>
+              Click name to update board members
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4 flex gap-2 flex-wrap">
+            {members?.map((member) => (
+              <div
+                key={member}
+                className={
+                  true
+                    ? "bg-gray-50 hover:cursor-pointer bg-opacity-50 rounded-md px-2 py-[1px] w-fit border-gray-700 border-2"
+                    : "bg-green-50 hover:cursor-pointer bg-opacity-50 rounded-md px-2 py-[1px] w-fit border-green-700 border-2"
+                }
+              >
+                {member}
+              </div>
+            ))}
+            {/* <Input
+              value={newBoardName}
+              onChange={(e) => setNewBoardName(e.target.value)}
+              placeholder="Board name"
+            /> */}
           </div>
           <DialogFooter>
             <Button
