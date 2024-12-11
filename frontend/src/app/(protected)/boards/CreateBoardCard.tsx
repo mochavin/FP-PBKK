@@ -6,6 +6,7 @@ import {
   Dialog,
   DialogContent,
   DialogHeader,
+  DialogDescription,
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
@@ -60,6 +61,7 @@ export function CreateBoardCard() {
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Create New Board</DialogTitle>
+          <DialogDescription>Enter new board name</DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <Input

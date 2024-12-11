@@ -197,9 +197,7 @@ export default function BoardList({ boards }: BoardListProps) {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Edit Board</DialogTitle>
-            <DialogDescription>
-              Enter a new name for your board.
-            </DialogDescription>
+            <DialogDescription>Edit board name</DialogDescription>
           </DialogHeader>
           <div className="py-4">
             <Input
