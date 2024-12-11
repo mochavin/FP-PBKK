@@ -5,6 +5,12 @@ type User struct {
 	Username string `gorm:"unique;not null"`
 	Email    string `gorm:"unique;not null"`
 	Password string `gorm:"not null"`
+	Boards   []Board  `gorm:"many2many:board_members;"`
+}
+
+type BoardMember struct {
+	BoardID string `gorm:"primaryKey"`
+	UserID  string `gorm:"primaryKey"`
 }
 
 type Board struct {
@@ -12,6 +18,7 @@ type Board struct {
 	Name    string `gorm:"not null"`
 	OwnerID string
 	Owner   User `gorm:"foreignKey:OwnerID"`
+	Members []User `gorm:"many2many:board_members;"`
 }
 
 type List struct {

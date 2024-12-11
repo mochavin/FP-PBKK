@@ -32,10 +32,22 @@ func CreateBoard(c *gin.Context) {
 		return
 	}
 
+	// Automatically add the owner to the board's members
+	if err := config.DB.Model(&board).Association("Members").Append(&models.User{ID: userID.(string)}); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to add owner to members"})
+		return
+	}
+
 	c.JSON(http.StatusCreated, board)
 }
 
 type BoardOwner struct {
+	Username string `json:"username"`
+	Email    string `json:"email"`
+}
+
+type BoardMember struct {
+	ID       string `json:"id"`
 	Username string `json:"username"`
 	Email    string `json:"email"`
 }
@@ -45,6 +57,7 @@ type BoardResponse struct {
 	Name    string     `json:"name"`
 	OwnerID string     `json:"ownerId"`
 	Owner   BoardOwner `json:"owner"`
+	Members []BoardMember `json:"members"`
 }
 
 // GetAllBoards mendapatkan semua boards milik pengguna
@@ -52,7 +65,10 @@ func GetAllBoards(c *gin.Context) {
 	userID, _ := c.Get("userID")
 
 	var boards []models.Board
-	if err := config.DB.Preload("Owner").Where("owner_id = ?", userID).Find(&boards).Error; err != nil {
+	// Preload Owner and Members relationships
+	if err := config.DB.Preload("Owner").Preload("Members").
+		Joins("JOIN board_members ON boards.id = board_members.board_id").
+		Where("board_members.user_id = ?", userID).Find(&boards).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get boards"})
 		return
 	}
@@ -60,6 +76,16 @@ func GetAllBoards(c *gin.Context) {
 	// Map to response struct
 	boardResponses := make([]BoardResponse, len(boards))
 	for i, board := range boards {
+		// Map members to response
+		members := make([]BoardMember, len(board.Members))
+		for j, member := range board.Members {
+			members[j] = BoardMember{
+				ID:       member.ID,
+				Username: member.Username,
+				Email:    member.Email,
+			}
+		}
+
 		boardResponses[i] = BoardResponse{
 			ID:      board.ID,
 			Name:    board.Name,
@@ -68,6 +94,7 @@ func GetAllBoards(c *gin.Context) {
 				Username: board.Owner.Username,
 				Email:    board.Owner.Email,
 			},
+			Members: members,
 		}
 	}
 
@@ -77,10 +104,26 @@ func GetAllBoards(c *gin.Context) {
 // GetBoard mendapatkan board berdasarkan ID
 func GetBoard(c *gin.Context) {
 	boardID := c.Param("boardId")
+	userID, _ := c.Get("userID")
 
 	var board models.Board
-	if err := config.DB.Where("id = ?", boardID).First(&board).Error; err != nil {
+	if err := config.DB.Preload("Owner").Preload("Members").
+		Where("id = ?", boardID).First(&board).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Board not found"})
+		return
+	}
+
+	// Check if user is the owner or a member
+	isMember := board.OwnerID == userID.(string)
+	for _, member := range board.Members {
+		if member.ID == userID.(string) {
+			isMember = true
+			break
+		}
+	}
+
+	if !isMember {
+		c.JSON(http.StatusForbidden, gin.H{"error": "Access denied"})
 		return
 	}
 
@@ -90,6 +133,7 @@ func GetBoard(c *gin.Context) {
 // UpdateBoard memperbarui board berdasarkan ID
 func UpdateBoard(c *gin.Context) {
 	boardID := c.Param("boardId")
+	userID, _ := c.Get("userID")
 
 	var input struct {
 		Name string `json:"name" binding:"required"`
@@ -100,8 +144,23 @@ func UpdateBoard(c *gin.Context) {
 	}
 
 	var board models.Board
-	if err := config.DB.Where("id = ?", boardID).First(&board).Error; err != nil {
+	if err := config.DB.Preload("Members").
+		Where("id = ?", boardID).First(&board).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Board not found"})
+		return
+	}
+
+	// Check if user is a member or owner
+	isMember := board.OwnerID == userID.(string)
+	for _, member := range board.Members {
+		if member.ID == userID.(string) {
+			isMember = true
+			break
+		}
+	}
+
+	if !isMember {
+		c.JSON(http.StatusForbidden, gin.H{"error": "Access denied"})
 		return
 	}
 
@@ -117,8 +176,21 @@ func UpdateBoard(c *gin.Context) {
 // DeleteBoard menghapus board berdasarkan ID
 func DeleteBoard(c *gin.Context) {
 	boardID := c.Param("boardId")
+	userID, _ := c.Get("userID")
 
-	if err := config.DB.Where("id = ?", boardID).Delete(&models.Board{}).Error; err != nil {
+	var board models.Board
+	if err := config.DB.Where("id = ?", boardID).First(&board).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Board not found"})
+		return
+	}
+
+	// Only the owner can delete the board
+	if board.OwnerID != userID.(string) {
+		c.JSON(http.StatusForbidden, gin.H{"error": "Access denied"})
+		return
+	}
+
+	if err := config.DB.Delete(&board).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete board"})
 		return
 	}
@@ -186,4 +258,74 @@ func GetBoardWithLists(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, response)
+}
+
+func GetAllUsers(c *gin.Context) {
+	var users []models.User
+	if err := config.DB.Find(&users).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch users"})
+		return
+	}
+
+	c.JSON(http.StatusOK, users)
+}
+
+func AddBoardMember(c *gin.Context) {
+	boardID := c.Param("boardId")
+	var input struct {
+		UserID string `json:"userId" binding:"required"`
+	}
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input"})
+		return
+	}
+
+	// Check if board exists
+	var board models.Board
+	if err := config.DB.Preload("Members").Where("id = ?", boardID).First(&board).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Board not found"})
+		return
+	}
+
+	// Check if user exists
+	var user models.User
+	if err := config.DB.Where("id = ?", input.UserID).First(&user).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+		return
+	}
+
+	// Add the user to the board's members
+	if err := config.DB.Model(&board).Association("Members").Append(&user); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to add member to the board"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Member added successfully"})
+}
+
+func RemoveBoardMember(c *gin.Context) {
+	boardID := c.Param("boardId")
+	userID := c.Param("userId")
+
+	// Check if board exists
+	var board models.Board
+	if err := config.DB.Preload("Members").Where("id = ?", boardID).First(&board).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Board not found"})
+		return
+	}
+
+	// Check if user is a member of the board
+	var user models.User
+	if err := config.DB.Where("id = ?", userID).First(&user).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+		return
+	}
+
+	// Remove the user from the board's members
+	if err := config.DB.Model(&board).Association("Members").Delete(&user); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to remove member from the board"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Member removed successfully"})
 }
