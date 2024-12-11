@@ -6,6 +6,19 @@ export interface Board {
     username: string;
     email: string;
   };
+  members: Member[];
+}
+
+export interface User {
+  ID: string;
+  Username: string;
+  Email: string;
+}
+
+export interface Member {
+  id: string;
+  username: string;
+  email: string;
 }
 
 export interface CardinBoard {

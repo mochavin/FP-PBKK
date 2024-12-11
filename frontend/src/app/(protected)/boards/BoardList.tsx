@@ -16,20 +16,21 @@ import {
 import { Button } from "@/components/ui/button";
 import { LayoutGrid, Trash2 } from "lucide-react";
 import Link from "next/link";
-import { Board } from "@/app/types/board";
+import { Board, Member, User } from "@/app/types/board";
 import { CreateBoardCard } from "./CreateBoardCard";
 import { mutate, useSWRConfig } from "swr";
 import Cookies from "js-cookie";
 import { toast } from "react-hot-toast";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Pencil } from "lucide-react";
 import { Input } from "@/components/ui/input";
 
 interface BoardListProps {
   boards: Board[];
+  users: User[];
 }
 
-export default function BoardList({ boards }: BoardListProps) {
+export default function BoardList({ boards, users }: BoardListProps) {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [boardToDelete, setBoardToDelete] = useState<string | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -38,17 +39,20 @@ export default function BoardList({ boards }: BoardListProps) {
   const [boardToEditMembers, setBoardToEditMembers] = useState<string | null>(
     null
   );
-  const [members, setMembers] = useState<Array<string> | null>([
-    "John",
-    "Ben",
-    "Doyle",
-    "Marie",
-  ]);
+  const [members, setMembers] = useState<Array<Member> | null>(null);
+  const [membersIds, setMembersIds] = useState<Array<string> | null>(null);
   const [newBoardName, setNewBoardName] = useState("");
+
+  useEffect(() => {
+    console.log(boards, users);
+  }, []);
 
   const openEditMembers = (boardId: string) => {
     setBoardToEditMembers(boardId);
     setIsEditMembersOpen(true);
+    const tmp = boards.find((board) => board.id === boardId);
+    setMembers(tmp?.members ?? null);
+    setMembersIds(tmp?.members?.map((member) => member?.id) ?? null);
   };
 
   const openDeleteDialog = (boardId: string) => {
@@ -172,7 +176,8 @@ export default function BoardList({ boards }: BoardListProps) {
                   Board owner: {board.owner.username}
                 </p>
                 <p className="text-sm text-gray-600">
-                  Board members: {members?.toString()}
+                  Board members:{" "}
+                  {members?.map((member) => member.username).toString()}
                 </p>
               </CardContent>
               <CardFooter>
@@ -262,21 +267,23 @@ export default function BoardList({ boards }: BoardListProps) {
           <div className="py-4 flex gap-2 flex-wrap">
             {members?.map((member) => (
               <div
-                key={member}
-                className={
-                  true
-                    ? "bg-gray-50 hover:cursor-pointer bg-opacity-50 rounded-md px-2 py-[1px] w-fit border-gray-700 border-2"
-                    : "bg-green-50 hover:cursor-pointer bg-opacity-50 rounded-md px-2 py-[1px] w-fit border-green-700 border-2"
-                }
+                key={member.id}
+                className="bg-green-50 hover:cursor-pointer bg-opacity-50 rounded-md px-2 py-[1px] w-fit border-green-700 border-2"
               >
-                {member}
+                {member.username}
               </div>
             ))}
-            {/* <Input
-              value={newBoardName}
-              onChange={(e) => setNewBoardName(e.target.value)}
-              placeholder="Board name"
-            /> */}
+            {users?.map(
+              (user) =>
+                !membersIds?.includes(user?.ID) && (
+                  <div
+                    key={user.ID}
+                    className="bg-gray-50 hover:cursor-pointer bg-opacity-50 rounded-md px-2 py-[1px] w-fit border-gray-700 border-2"
+                  >
+                    {user.Username}
+                  </div>
+                )
+            )}
           </div>
           <DialogFooter>
             <Button
