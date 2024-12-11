@@ -19,6 +19,7 @@ import AddListModal from "./AddListModal";
 import AddCardModal from "./AddCardModal";
 import { Button } from "@/components/ui/button";
 import DeleteCardModal from "./DeleteCardModal";
+import Breadcrumb from "@/components/ui/breadcrumb";
 
 const KanbanPage: React.FC = () => {
   const searchParams = useSearchParams();
@@ -172,6 +173,7 @@ const KanbanPage: React.FC = () => {
 
   return (
     <div>
+      <Breadcrumb />
       <div className="flex justify-between items-center my-4 mx-6">
         <h1 className="text-2xl font-bold">{board.name}</h1>
         <Button onClick={() => setIsAddListModalOpen(true)}>Add List</Button>
