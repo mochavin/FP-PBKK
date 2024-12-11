@@ -19,6 +19,7 @@ export interface Member {
   id: string;
   username: string;
   email: string;
+  isMember: boolean;
 }
 
 export interface CardinBoard {

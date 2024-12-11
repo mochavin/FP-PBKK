@@ -16,9 +16,9 @@ import {
 import { Button } from "@/components/ui/button";
 import { LayoutGrid, Trash2 } from "lucide-react";
 import Link from "next/link";
-import { Board, Member, User } from "@/app/types/board";
+import { Board, Member, User as UserType } from "@/app/types/board";
 import { CreateBoardCard } from "./CreateBoardCard";
-import { mutate, useSWRConfig } from "swr";
+import { mutate } from "swr";
 import Cookies from "js-cookie";
 import { toast } from "react-hot-toast";
 import { useEffect, useState } from "react";
@@ -27,7 +27,7 @@ import { Input } from "@/components/ui/input";
 
 interface BoardListProps {
   boards: Board[];
-  users: User[];
+  users: UserType[];
 }
 
 export default function BoardList({ boards, users }: BoardListProps) {
@@ -44,20 +44,38 @@ export default function BoardList({ boards, users }: BoardListProps) {
   const [newBoardName, setNewBoardName] = useState("");
 
   useEffect(() => {
-    console.log(boards, users);
-  }, []);
+    console.log(users, members);
+  }, [members, users]);
 
   const openEditMembers = (boardId: string) => {
     setBoardToEditMembers(boardId);
+    const boardMembersIds =
+      boards
+        .find((board) => board.id === boardId)
+        ?.members?.map((member) => member.id) ?? [];
+    const tmpMembers: Member[] = users?.map((user) => ({
+      id: user.ID,
+      email: user.Email,
+      username: user.Username,
+      isMember: boardMembersIds.includes(user.ID),
+    }));
+    setMembers(tmpMembers ?? null);
     setIsEditMembersOpen(true);
-    const tmp = boards.find((board) => board.id === boardId);
-    setMembers(tmp?.members ?? null);
-    setMembersIds(tmp?.members?.map((member) => member?.id) ?? null);
+    console.log(tmpMembers);
   };
 
   const openDeleteDialog = (boardId: string) => {
     setBoardToDelete(boardId);
     setIsDeleteDialogOpen(true);
+  };
+
+  const toggleMember = (memberId: string) => {
+    const tmpPrev = members?.map((member) =>
+      member.id === memberId
+        ? { ...member, isMember: !member.isMember }
+        : member
+    );
+    setMembers(tmpPrev ?? null);
   };
 
   const handleDelete = async () => {
@@ -177,7 +195,7 @@ export default function BoardList({ boards, users }: BoardListProps) {
                 </p>
                 <p className="text-sm text-gray-600">
                   Board members:{" "}
-                  {members?.map((member) => member.username).toString()}
+                  {board?.members?.map((member) => member.username).toString()}
                 </p>
               </CardContent>
               <CardFooter>
@@ -268,22 +286,16 @@ export default function BoardList({ boards, users }: BoardListProps) {
             {members?.map((member) => (
               <div
                 key={member.id}
-                className="bg-green-50 hover:cursor-pointer bg-opacity-50 rounded-md px-2 py-[1px] w-fit border-green-700 border-2"
+                className={
+                  member.isMember
+                    ? "bg-green-50 hover:cursor-pointer bg-opacity-50 rounded-md px-2 py-[1px] w-fit border-green-700 border-2"
+                    : "bg-gray-50 hover:cursor-pointer bg-opacity-50 rounded-md px-2 py-[1px] w-fit border-gray-700 border-2"
+                }
+                onClick={() => toggleMember(member.id)}
               >
                 {member.username}
               </div>
             ))}
-            {users?.map(
-              (user) =>
-                !membersIds?.includes(user?.ID) && (
-                  <div
-                    key={user.ID}
-                    className="bg-gray-50 hover:cursor-pointer bg-opacity-50 rounded-md px-2 py-[1px] w-fit border-gray-700 border-2"
-                  >
-                    {user.Username}
-                  </div>
-                )
-            )}
           </div>
           <DialogFooter>
             <Button
