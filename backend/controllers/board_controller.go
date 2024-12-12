@@ -190,11 +190,27 @@ func DeleteBoard(c *gin.Context) {
 		return
 	}
 
-	if err := config.DB.Delete(&board).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete board"})
+	// Delete all lists and cards in the board
+	if err := config.DB.Where("list_id in (?)", board.ID).Delete(&models.Card{}).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete cards"})
+		return
+	}
+	if err := config.DB.Where("board_id = ?", board.ID).Delete(&models.List{}).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete lists"})
 		return
 	}
 
+	// Delete all members from the board
+	if err := config.DB.Where("board_id = ?", board.ID).Delete(&models.BoardMember{}).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete members"})
+		return
+	}
+
+	// Delete the board
+	if err := config.DB.Where("id = ?", board.ID).Delete(&models.Board{}).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete board"})
+		return
+	}
 	c.JSON(http.StatusOK, gin.H{"message": "Board deleted successfully"})
 }
 

@@ -24,6 +24,8 @@ import { toast } from "react-hot-toast";
 import { useEffect, useState } from "react";
 import { Pencil } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { deleteBoard } from "@/lib/api";
+import { DeleteBoardModal } from "./DeleteBoardModal";
 
 interface BoardListProps {
   boards: Board[];
@@ -32,6 +34,7 @@ interface BoardListProps {
 
 export default function BoardList({ boards, users }: BoardListProps) {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isLoadding, setIsLoading] = useState(false);
   const [boardToDelete, setBoardToDelete] = useState<string | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [boardToEdit, setBoardToEdit] = useState<string | null>(null);
@@ -82,21 +85,9 @@ export default function BoardList({ boards, users }: BoardListProps) {
     if (!boardToDelete) return;
 
     const loadingToast = toast.loading("Deleting board...");
-
+    setIsLoading(true);
     try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/board/${boardToDelete}`,
-        {
-          method: "DELETE",
-          headers: {
-            Authorization: `Bearer ${Cookies.get("token")}`,
-          },
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error("Failed to delete board");
-      }
+      const response = await deleteBoard(boardToDelete);
 
       mutate("/board/");
       toast.dismiss(loadingToast);
@@ -106,6 +97,7 @@ export default function BoardList({ boards, users }: BoardListProps) {
       toast.error("Failed to delete board");
       console.error("Error deleting board:", error);
     } finally {
+      setIsLoading(false);
       setIsDeleteDialogOpen(false);
       setBoardToDelete(null);
     }
@@ -219,28 +211,12 @@ export default function BoardList({ boards, users }: BoardListProps) {
         </div>
       </div>
 
-      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Delete Board</DialogTitle>
-            <DialogDescription>
-              Are you sure you want to delete this board? This action cannot be
-              undone.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setIsDeleteDialogOpen(false)}
-            >
-              Cancel
-            </Button>
-            <Button variant="destructive" onClick={handleDelete}>
-              Delete
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <DeleteBoardModal
+        isOpen={isDeleteDialogOpen}
+        onClose={() => setIsDeleteDialogOpen(false)}
+        onDelete={handleDelete}
+        isLoading={isLoadding}
+      />
 
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContent>

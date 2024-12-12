@@ -93,27 +93,35 @@ export const createList = async (
 export const createCard = async (
   boardId: string,
   listId: string,
-  card: { title: string; description: string; position: number, deadline?: string }
+  card: {
+    title: string;
+    description: string;
+    position: number;
+    deadline?: string;
+  }
 ) => {
   // change 2024-12-11 format to 2024-12-11T00:00:00Z
   const date = new Date(card.deadline!).toISOString().replace(/T.*$/, "Z");
   card.deadline = date;
 
-  const res = await fetch(`${BASE_URL}/board/${boardId}/lists/${listId}/cards`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      authorization: `Bearer ${Cookies.get("token")}`,
-    },
-    body: JSON.stringify(card),
-  });
+  const res = await fetch(
+    `${BASE_URL}/board/${boardId}/lists/${listId}/cards`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        authorization: `Bearer ${Cookies.get("token")}`,
+      },
+      body: JSON.stringify(card),
+    }
+  );
   if (!res.ok) throw new Error("Failed to create card");
   return res.json();
 };
 
 export const deleteCard = async (
-  boardId: string, 
-  listId: string, 
+  boardId: string,
+  listId: string,
   cardId: string
 ) => {
   const res = await fetch(
@@ -129,14 +137,21 @@ export const deleteCard = async (
 };
 
 export const deleteList = async (boardId: string, listId: string) => {
-  const res = await fetch(
-    `${BASE_URL}/board/${boardId}/lists/${listId}`,
-    {
-      method: "DELETE",
-      headers: {
-        authorization: `Bearer ${Cookies.get("token")}`,
-      },
-    }
-  );
+  const res = await fetch(`${BASE_URL}/board/${boardId}/lists/${listId}`, {
+    method: "DELETE",
+    headers: {
+      authorization: `Bearer ${Cookies.get("token")}`,
+    },
+  });
   if (!res.ok) throw new Error("Failed to delete list");
+};
+
+export const deleteBoard = async (boardId: string) => {
+  const res = await fetch(`${BASE_URL}/board/${boardId}`, {
+    method: "DELETE",
+    headers: {
+      authorization: `Bearer ${Cookies.get("token")}`,
+    },
+  });
+  if (!res.ok) throw new Error("Failed to delete board");
 };
