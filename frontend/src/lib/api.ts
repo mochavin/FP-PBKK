@@ -40,7 +40,7 @@ export const fetcher = async (url: string) => {
   });
 
   if (!res.ok) {
-    throw new Error("Failed to fetch boards");
+    throw new Error("Failed to fetch data");
   }
 
   return res.json();

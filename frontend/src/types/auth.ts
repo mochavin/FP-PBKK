@@ -14,3 +14,9 @@ export interface RegisterResponse {
     username: string;
   };
 }
+
+export interface User {
+  email: string;
+  id: string;
+  username: string;
+}

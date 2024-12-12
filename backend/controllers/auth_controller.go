@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"crypto/rand"
+	"fmt"
 	"math/big"
 	"net/http"
 	"time"
@@ -165,10 +166,17 @@ func LoginWithGoogle(c *gin.Context) {
 }
 
 func GetCurrentUser(c *gin.Context) {
-	userID, _ := c.Get("userID")
+	userID, exists := c.Get("userID")
+	fmt.Printf("GetCurrentUser - UserID exists: %v, Value: %v\n", exists, userID)
+
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "User ID not found in context"})
+		return
+	}
 
 	var user models.User
 	if err := config.DB.Where("id = ?", userID).First(&user).Error; err != nil {
+		fmt.Printf("Database error: %v\n", err)
 		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
 		return
 	}
