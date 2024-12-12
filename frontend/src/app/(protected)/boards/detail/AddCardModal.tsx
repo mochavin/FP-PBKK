@@ -9,6 +9,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { formatDateForInput } from "@/lib/utils";
 
 interface AddCardModalProps {
   isOpen: boolean;
@@ -16,10 +17,14 @@ interface AddCardModalProps {
   onSubmit: (title: string, description: string, date: string) => Promise<void>;
 }
 
-const AddCardModal: React.FC<AddCardModalProps> = ({ isOpen, onClose, onSubmit }) => {
+const AddCardModal: React.FC<AddCardModalProps> = ({
+  isOpen,
+  onClose,
+  onSubmit,
+}) => {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [date, setDate] = useState("");
+  const [date, setDate] = useState(formatDateForInput(new Date()));
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -29,6 +34,7 @@ const AddCardModal: React.FC<AddCardModalProps> = ({ isOpen, onClose, onSubmit }
     setIsLoading(false);
     setTitle("");
     setDescription("");
+    setDate(formatDateForInput(new Date()));
   };
 
   return (
@@ -53,9 +59,9 @@ const AddCardModal: React.FC<AddCardModalProps> = ({ isOpen, onClose, onSubmit }
           />
           <Input
             type="date"
+            value={date}
             onChange={(e) => setDate(e.target.value)}
             placeholder="Due Date"
-            defaultValue={new Date().toISOString().split("T")[0]}
             required
           />
           <DialogFooter>

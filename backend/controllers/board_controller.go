@@ -218,20 +218,33 @@ func DeleteBoard(c *gin.Context) {
 func GetBoardWithLists(c *gin.Context) {
 	boardID := c.Param("boardId")
 
-	// Get board and check ownership
+	// Get board with its members
 	var board models.Board
-	if err := config.DB.Where("id = ?", boardID).First(&board).Error; err != nil {
+	if err := config.DB.
+		Preload("Members").
+		Where("id = ?", boardID).
+		First(&board).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Board not found"})
 		return
 	}
 
+	// Check if user is owner or member
 	userID, _ := c.Get("userID")
-	if board.OwnerID != userID.(string) {
+	isOwner := board.OwnerID == userID.(string)
+	isMember := false
+	for _, member := range board.Members {
+		if member.ID == userID.(string) {
+			isMember = true
+			break
+		}
+	}
+
+	if !isOwner && !isMember {
 		c.JSON(http.StatusForbidden, gin.H{"error": "Access denied"})
 		return
 	}
 
-	// Get all lists with cards
+	// Rest of the code remains the same
 	var lists []models.List
 	if err := config.DB.Where("board_id = ?", boardID).Order("position").Find(&lists).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get lists"})

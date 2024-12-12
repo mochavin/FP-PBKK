@@ -18,3 +18,10 @@ export const getDeadlineStatus = (deadline: string) => {
   if (diffDays <= 7) return { color: "text-yellow-600", status: "This Week" };
   return { color: "text-gray-600", status: "Upcoming" };
 };
+
+export const formatDateForInput = (date: Date) => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
