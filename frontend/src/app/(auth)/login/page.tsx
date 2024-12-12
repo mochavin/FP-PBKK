@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import toast from "react-hot-toast";
+import GoogleSignInButton from "@/components/GoogleSignInButton";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -17,8 +18,8 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
 
   useEffect(() => {
-    if (Cookies.get('token')) {
-      router.replace('/boards');
+    if (Cookies.get("token")) {
+      router.replace("/boards");
     }
   }, [router]);
 
@@ -88,6 +89,9 @@ export default function LoginPage() {
                   onChange={(e) => setPassword(e.target.value)}
                   required
                 />
+              </div>
+              <div className="flex items-center justify-center w-full">
+                <GoogleSignInButton />
               </div>
               <Button type="submit" className="w-full" disabled={isMutating}>
                 {isMutating ? "Signing in..." : "Sign In"}

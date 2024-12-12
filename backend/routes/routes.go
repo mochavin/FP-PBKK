@@ -30,6 +30,7 @@ func SetupRouter() *gin.Engine {
 		auth.POST("/register", controllers.Register)
 		auth.POST("/login", controllers.Login)
 		auth.GET("/me", controllers.GetCurrentUser)
+		auth.POST("/google", controllers.LoginWithGoogle)
 	}
 
 	board := router.Group("/board")
