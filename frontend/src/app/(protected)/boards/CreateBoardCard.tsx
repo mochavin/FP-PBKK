@@ -15,24 +15,19 @@ import { useState } from "react";
 import { mutate, useSWRConfig } from "swr";
 import Cookies from "js-cookie";
 import toast from "react-hot-toast";
+import { createBoard } from "@/lib/api";
 
 export function CreateBoardCard() {
   const [boardName, setBoardName] = useState("");
   const [isOpen, setIsOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsLoading(true);
     try {
-      await fetch(`${process.env.NEXT_PUBLIC_API_URL}/board/`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${Cookies.get("token")}`,
-        },
-        body: JSON.stringify({ name: boardName }),
-      });
+      await createBoard(boardName);
 
-      // Refresh the boards list
       toast.success(`Board ${boardName} created successfully`);
       mutate("/board/");
       setBoardName("");
@@ -40,6 +35,7 @@ export function CreateBoardCard() {
     } catch (error) {
       console.error("Failed to create board:", error);
     }
+    setIsLoading(false);
   };
 
   return (
@@ -69,8 +65,8 @@ export function CreateBoardCard() {
             value={boardName}
             onChange={(e) => setBoardName(e.target.value)}
           />
-          <Button type="submit" className="w-full">
-            Create Board
+          <Button type="submit" className="w-full" disabled={isLoading || !boardName.trim()}>
+            {isLoading ? "Creating..." : "Create Board"}
           </Button>
         </form>
       </DialogContent>

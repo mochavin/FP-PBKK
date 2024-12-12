@@ -168,3 +168,16 @@ export const updateBoardName = async (boardId: string, boardName: string) => {
   });
   if (!res.ok) throw new Error("Failed to update board");
 };
+
+export const createBoard = async (boardName: string) => {
+  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/board/`, {
+    method: "POST",
+    headers: {
+      authorization: `Bearer ${Cookies.get("token")}`,
+    },
+    body: JSON.stringify({
+      name: boardName,
+    })
+  });
+  if (!res.ok) throw new Error("Failed to create board");
+};
