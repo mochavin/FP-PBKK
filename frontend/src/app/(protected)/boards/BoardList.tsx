@@ -24,8 +24,9 @@ import { toast } from "react-hot-toast";
 import { useEffect, useState } from "react";
 import { Pencil } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { deleteBoard } from "@/lib/api";
+import { deleteBoard, updateBoardName } from "@/lib/api";
 import { DeleteBoardModal } from "./DeleteBoardModal";
+import { EditBoardNameModal } from "./EditBoardNameModal";
 
 interface BoardListProps {
   boards: Board[];
@@ -109,34 +110,17 @@ export default function BoardList({ boards, users }: BoardListProps) {
     setIsEditDialogOpen(true);
   };
 
-  // Add handleUpdate function inside BoardList component
-  const handleUpdate = async () => {
+  const handleUpdate = async (newName: string) => {
     if (!boardToEdit) return;
 
     const loadingToast = toast.loading("Updating board...");
 
     try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/board/${boardToEdit}`,
-        {
-          method: "PUT",
-          headers: {
-            Authorization: `Bearer ${Cookies.get("token")}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            name: newBoardName,
-          }),
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error("Failed to update board");
-      }
+      await updateBoardName(boardToEdit, newName);
 
       mutate("/board/");
       toast.dismiss(loadingToast);
-      toast.success(`Board ${newBoardName} updated successfully`);
+      toast.success(`Board ${newName} updated successfully`);
     } catch (error) {
       toast.dismiss(loadingToast);
       toast.error("Failed to update board");
@@ -144,7 +128,6 @@ export default function BoardList({ boards, users }: BoardListProps) {
     } finally {
       setIsEditDialogOpen(false);
       setBoardToEdit(null);
-      setNewBoardName("");
     }
   };
 
@@ -218,36 +201,12 @@ export default function BoardList({ boards, users }: BoardListProps) {
         isLoading={isLoadding}
       />
 
-      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Edit Board</DialogTitle>
-            <DialogDescription>Edit board name</DialogDescription>
-          </DialogHeader>
-          <div className="py-4">
-            <Input
-              value={newBoardName}
-              onChange={(e) => setNewBoardName(e.target.value)}
-              placeholder="Board name"
-            />
-          </div>
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setIsEditDialogOpen(false)}
-            >
-              Cancel
-            </Button>
-            <Button
-              variant="default"
-              onClick={handleUpdate}
-              disabled={!newBoardName.trim()}
-            >
-              Update
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <EditBoardNameModal
+        isOpen={isEditDialogOpen}
+        onClose={() => setIsEditDialogOpen(false)}
+        onUpdate={handleUpdate}
+        initialBoardName={newBoardName}
+      />
 
       {/* edit member dialog */}
       <Dialog open={isEditMembersOpen} onOpenChange={setIsEditMembersOpen}>
@@ -282,8 +241,7 @@ export default function BoardList({ boards, users }: BoardListProps) {
             </Button>
             <Button
               variant="default"
-              onClick={handleUpdate}
-              disabled={!newBoardName.trim()}
+              onClick={() => handleUpdate(newBoardName)}
             >
               Update
             </Button>

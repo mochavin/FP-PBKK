@@ -155,3 +155,16 @@ export const deleteBoard = async (boardId: string) => {
   });
   if (!res.ok) throw new Error("Failed to delete board");
 };
+
+export const updateBoardName = async (boardId: string, boardName: string) => {
+  const res = await fetch(`${BASE_URL}/board/${boardId}`, {
+    method: "PUT",
+    headers: {
+      authorization: `Bearer ${Cookies.get("token")}`,
+    },
+    body: JSON.stringify({
+      name: boardName,
+    })
+  });
+  if (!res.ok) throw new Error("Failed to update board");
+};
