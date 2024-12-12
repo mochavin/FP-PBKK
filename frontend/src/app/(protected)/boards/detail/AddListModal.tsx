@@ -1,22 +1,29 @@
-import { Button } from '@/components/ui/button';
-import React, { useState } from 'react';
+import { Button } from "@/components/ui/button";
+import React, { useState } from "react";
 
 interface AddListModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onAddList: (listName: string) => void;
+  onAddList: (listName: string) => Promise<void>;
 }
 
-const AddListModal: React.FC<AddListModalProps> = ({ isOpen, onClose, onAddList }) => {
-  const [listName, setListName] = useState('');
+const AddListModal: React.FC<AddListModalProps> = ({
+  isOpen,
+  onClose,
+  onAddList,
+}) => {
+  const [listName, setListName] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsLoading(true);
     if (listName.trim()) {
       await onAddList(listName);
-      setListName('');
+      setListName("");
       onClose();
     }
+    setIsLoading(false);
   };
 
   if (!isOpen) return null;
@@ -42,10 +49,8 @@ const AddListModal: React.FC<AddListModalProps> = ({ isOpen, onClose, onAddList 
             >
               Cancel
             </button>
-            <Button
-              type="submit"
-            >
-              Add List
+            <Button type="submit" disabled={isLoading || !listName.trim()}>
+              {isLoading ? "Adding..." : "Add List"}
             </Button>
           </div>
         </form>
