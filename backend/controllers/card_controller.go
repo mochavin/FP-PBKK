@@ -18,7 +18,9 @@ func CreateCard(c *gin.Context) {
 		Title       string `json:"title" binding:"required"`
 		Description string `json:"description"`
 		Position    int    `json:"position"`
+		Deadline    string `json:"deadline"`
 	}
+
 	if err := c.ShouldBindJSON(&input); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input"})
 		return
@@ -51,6 +53,7 @@ func CreateCard(c *gin.Context) {
 		Description: input.Description,
 		Position:    input.Position,
 		ListID:      listID,
+		Deadline:    input.Deadline,
 	}
 
 	if err := config.DB.Create(&card).Error; err != nil {
@@ -100,6 +103,7 @@ type CardResponse struct {
 	Description string `json:"description"`
 	Position    int    `json:"position"`
 	ListID      string `json:"listId"`
+	Deadline    string `json:"deadline"`
 }
 
 // UpdateCard updates a specific card

@@ -5,6 +5,7 @@ type CardResponse struct {
 	Title       string `json:"title"`
 	Description string `json:"description"`
 	Position    int    `json:"position"`
+	Deadline    string `json:"deadline"`
 }
 
 type ListResponse struct {

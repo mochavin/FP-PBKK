@@ -93,8 +93,12 @@ export const createList = async (
 export const createCard = async (
   boardId: string,
   listId: string,
-  card: { title: string; description: string; position: number }
+  card: { title: string; description: string; position: number, deadline?: string }
 ) => {
+  // change 2024-12-11 format to 2024-12-11T00:00:00Z
+  const date = new Date(card.deadline!).toISOString().replace(/T.*$/, "Z");
+  card.deadline = date;
+
   const res = await fetch(`${BASE_URL}/board/${boardId}/lists/${listId}/cards`, {
     method: "POST",
     headers: {

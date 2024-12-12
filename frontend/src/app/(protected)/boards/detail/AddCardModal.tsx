@@ -13,16 +13,17 @@ import { Textarea } from "@/components/ui/textarea";
 interface AddCardModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (title: string, description: string) => void;
+  onSubmit: (title: string, description: string, date: string) => Promise<void>;
 }
 
 const AddCardModal: React.FC<AddCardModalProps> = ({ isOpen, onClose, onSubmit }) => {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
+  const [date, setDate] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    await onSubmit(title, description);
+    await onSubmit(title, description, date);
     setTitle("");
     setDescription("");
   };
@@ -45,6 +46,13 @@ const AddCardModal: React.FC<AddCardModalProps> = ({ isOpen, onClose, onSubmit }
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             placeholder="Card Description"
+            required
+          />
+          <Input
+            type="date"
+            value={date}
+            onChange={(e) => setDate(e.target.value)}
+            placeholder="Due Date"
             required
           />
           <DialogFooter>

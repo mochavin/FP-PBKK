@@ -13,6 +13,7 @@ interface Card {
   id: string;
   title: string;
   description: string;
+  deadline?: string;
 }
 
 interface List {
@@ -132,6 +133,9 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({
                         <h4 className="font-medium">{card.title}</h4>
                         <p className="text-sm text-gray-600">
                           {card.description}
+                        </p>
+                        <p>
+                            {card.deadline ? `Deadline: ${new Date(card.deadline).toLocaleDateString()}` : ""}
                         </p>
                       </div>
                     )}

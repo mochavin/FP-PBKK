@@ -1,11 +1,11 @@
 package models
 
 type User struct {
-	ID       string `gorm:"primaryKey"`
-	Username string `gorm:"unique;not null"`
-	Email    string `gorm:"unique;not null"`
-	Password string `gorm:"not null"`
-	Boards   []Board  `gorm:"many2many:board_members;"`
+	ID       string  `gorm:"primaryKey"`
+	Username string  `gorm:"unique;not null"`
+	Email    string  `gorm:"unique;not null"`
+	Password string  `gorm:"not null"`
+	Boards   []Board `gorm:"many2many:board_members;"`
 }
 
 type BoardMember struct {
@@ -17,7 +17,7 @@ type Board struct {
 	ID      string `gorm:"primaryKey"`
 	Name    string `gorm:"not null"`
 	OwnerID string
-	Owner   User `gorm:"foreignKey:OwnerID"`
+	Owner   User   `gorm:"foreignKey:OwnerID"`
 	Members []User `gorm:"many2many:board_members;"`
 }
 
@@ -35,7 +35,8 @@ type Card struct {
 	Description string
 	Position    int
 	ListID      string
-	List        List `gorm:"foreignKey:ListID"`
+	List        List   `gorm:"foreignKey:ListID"`
+	Deadline    string `gorm:"default:null"`
 }
 
 type Collaborator struct {

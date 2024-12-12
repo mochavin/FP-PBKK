@@ -41,7 +41,7 @@ const KanbanPage: React.FC = () => {
   } | null>(null);
   const [selectedListId, setSelectedListId] = useState<string | null>(null);
 
-  const handleAddCard = async (title: string, description: string) => {
+  const handleAddCard = async (title: string, description: string, date: string) => {
     if (!selectedListId || !board) return;
 
     const loadingToast = toast.loading("Adding card...");
@@ -51,6 +51,7 @@ const KanbanPage: React.FC = () => {
         description,
         position:
           board.lists.find((l) => l.id === selectedListId)?.cards.length || 0,
+        deadline: date,
       });
 
       await mutate();
