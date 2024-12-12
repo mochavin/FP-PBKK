@@ -164,7 +164,7 @@ export const updateBoardName = async (boardId: string, boardName: string) => {
     },
     body: JSON.stringify({
       name: boardName,
-    })
+    }),
   });
   if (!res.ok) throw new Error("Failed to update board");
 };
@@ -177,7 +177,23 @@ export const createBoard = async (boardName: string) => {
     },
     body: JSON.stringify({
       name: boardName,
-    })
+    }),
   });
   if (!res.ok) throw new Error("Failed to create board");
+};
+
+export const updateBoardMembers = async (
+  boardId: string,
+  members: string[]
+) => {
+  const res = await fetch(`${BASE_URL}/board/${boardId}/members`, {
+    method: "PUT",
+    headers: {
+      authorization: `Bearer ${Cookies.get("token")}`,
+    },
+    body: JSON.stringify({
+      userIds: members,
+    }),
+  });
+  if (!res.ok) throw new Error("Failed to update board members");
 };

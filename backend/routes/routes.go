@@ -45,6 +45,7 @@ func SetupRouter() *gin.Engine {
 		// members routes
 		board.GET("/users", controllers.GetAllUsers)
 		board.POST("/:boardId/members", controllers.AddBoardMember)
+		board.PUT("/:boardId/members", controllers.UpdateBoardMembers)
 		board.DELETE("/:boardId/members/:userId", controllers.RemoveBoardMember)
 
 		board.POST("/:boardId/lists", controllers.CreateList)

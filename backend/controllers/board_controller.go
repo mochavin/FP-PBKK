@@ -320,6 +320,64 @@ func AddBoardMember(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Member added successfully"})
 }
 
+func UpdateBoardMembers(c *gin.Context) {
+	boardID := c.Param("boardId")
+
+	var input struct {
+		UserIDs []string `json:"userIds" binding:"required"`
+	}
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input"})
+		return
+	}
+
+	// Start transaction
+	tx := config.DB.Begin()
+
+	// Check if board exists
+	var board models.Board
+	if err := tx.Preload("Members").Where("id = ?", boardID).First(&board).Error; err != nil {
+		tx.Rollback()
+		c.JSON(http.StatusNotFound, gin.H{"error": "Board not found"})
+		return
+	}
+
+	// Remove all existing members
+	if err := tx.Model(&board).Association("Members").Clear(); err != nil {
+		tx.Rollback()
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to clear board members"})
+		return
+	}
+
+	// Add new members
+	var newMembers []models.User
+	for _, userID := range input.UserIDs {
+		var user models.User
+		if err := tx.Where("id = ?", userID).First(&user).Error; err != nil {
+			tx.Rollback()
+			c.JSON(http.StatusNotFound, gin.H{"error": "User not found: " + userID})
+			return
+		}
+		newMembers = append(newMembers, user)
+	}
+
+	// Set new members
+	if err := tx.Model(&board).Association("Members").Replace(newMembers); err != nil {
+		tx.Rollback()
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update board members"})
+		return
+	}
+
+	// Commit transaction
+	if err := tx.Commit().Error; err != nil {
+		tx.Rollback()
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to commit changes"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Board members updated successfully"})
+}
+
 func RemoveBoardMember(c *gin.Context) {
 	boardID := c.Param("boardId")
 	userID := c.Param("userId")
