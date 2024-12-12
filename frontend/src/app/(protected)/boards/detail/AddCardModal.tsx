@@ -20,10 +20,13 @@ const AddCardModal: React.FC<AddCardModalProps> = ({ isOpen, onClose, onSubmit }
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [date, setDate] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsLoading(true);
     await onSubmit(title, description, date);
+    setIsLoading(false);
     setTitle("");
     setDescription("");
   };
@@ -50,16 +53,18 @@ const AddCardModal: React.FC<AddCardModalProps> = ({ isOpen, onClose, onSubmit }
           />
           <Input
             type="date"
-            value={date}
             onChange={(e) => setDate(e.target.value)}
             placeholder="Due Date"
+            defaultValue={new Date().toISOString().split("T")[0]}
             required
           />
           <DialogFooter>
             <Button type="button" variant="outline" onClick={onClose}>
               Cancel
             </Button>
-            <Button type="submit">Add Card</Button>
+            <Button type="submit" disabled={isLoading}>
+              {isLoading ? "Adding..." : "Add"}
+            </Button>
           </DialogFooter>
         </form>
       </DialogContent>

@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 interface DeleteCardModalProps {
   isOpen: boolean;
   onClose: () => void;
+  isLoading: boolean;
   onSubmit: () => void;
   cardTitle?: string;
 }
@@ -19,6 +20,7 @@ interface DeleteCardModalProps {
 const DeleteCardModal: React.FC<DeleteCardModalProps> = ({
   isOpen,
   onClose,
+  isLoading,
   onSubmit,
   cardTitle,
 }) => {
@@ -35,8 +37,8 @@ const DeleteCardModal: React.FC<DeleteCardModalProps> = ({
           <Button variant="outline" onClick={onClose}>
             Cancel
           </Button>
-          <Button variant="destructive" onClick={onSubmit}>
-            Delete
+          <Button variant="destructive" onClick={onSubmit} disabled={isLoading}>
+            {isLoading ? "Deleting..." : "Delete"}
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -5,9 +5,10 @@ import {
   Draggable,
   DropResult,
 } from "@hello-pangea/dnd";
-import { PlusIcon, Trash2 } from "lucide-react";
+import { Clock, PlusIcon, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
+import { getDeadlineStatus } from "@/lib/utils";
 
 interface Card {
   id: string;
@@ -35,7 +36,9 @@ interface KanbanBoardProps {
   onDeleteList: (listId: string) => void;
   setIsAddListModalOpen: (isOpen: boolean) => void;
   setIsDeleteCardModalOpen: (isOpen: boolean) => void;
-  setCardToDelete: (card: { listId: string; cardId: string; title: string } | null) => void;
+  setCardToDelete: (
+    card: { listId: string; cardId: string; title: string } | null
+  ) => void;
 }
 
 const KanbanBoard: React.FC<KanbanBoardProps> = ({
@@ -50,7 +53,7 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({
 }) => {
   if (board.lists.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center p-8 space-y-4 min-h-[400px] bg-gray-50 rounded-lg">
+      <div className="flex flex-col items-center justify-center p-8 space-y-4 min-h-[400px] rounded-lg">
         <Image
           src="/empty-state.svg"
           alt="Empty state"
@@ -101,7 +104,7 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({
                         {...provided.dragHandleProps}
                         style={{
                           ...provided.draggableProps.style,
-                          opacity: snapshot.isDragging ? 0.8 : 1,
+                          opacity: snapshot.isDragging ? 0.9 : 1,
                         }}
                         className={`
                           relative
@@ -110,10 +113,15 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({
                           p-2 
                           mb-2 
                           bg-white 
-                          shadow-sm
-                          transition-transform duration-200 ease-in-out
-                          ${snapshot.isDragging ? "transform scale-105" : ""}
+                          shadow-md hover:shadow-lg
+                          transition-all duration-200 ease-in-out
+                          ${
+                            snapshot.isDragging
+                              ? "transform scale-102 rotate-1"
+                              : ""
+                          }
                           group
+                          hover:bg-gray-50
                         `}
                       >
                         <button
@@ -125,18 +133,25 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({
                             });
                             setIsDeleteCardModalOpen(true);
                           }}
-                          className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 
-                                     text-gray-500 hover:text-red-500 transition-opacity"
+                          className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 
+                                     p-1.5 rounded-full hover:bg-red-50
+                                     text-gray-400 hover:text-red-500 
+                                     transition-all duration-200"
                         >
                           <Trash2 size={16} />
                         </button>
-                        <h4 className="font-medium">{card.title}</h4>
-                        <p className="text-sm text-gray-600">
+
+                        <h4 className="font-semibold text-gray-800 mb-2">
+                          {card.title}
+                        </h4>
+
+                        <p className="text-sm text-gray-600 mb-3 line-clamp-2">
                           {card.description}
                         </p>
-                        <p>
-                            {card.deadline ? `Deadline: ${new Date(card.deadline).toLocaleDateString()}` : ""}
-                        </p>
+
+                        {card.deadline && (
+                          <DeadlineDisplay deadline={card.deadline} />
+                        )}
                       </div>
                     )}
                   </Draggable>
@@ -160,6 +175,37 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({
         ))}
       </div>
     </DragDropContext>
+  );
+};
+
+interface DeadlineDisplayProps {
+  deadline: string;
+}
+
+const DeadlineDisplay = ({ deadline }: DeadlineDisplayProps) => {
+  const { color, status } = getDeadlineStatus(deadline);
+
+  return (
+    <div className="flex items-center justify-between w-full mt-2">
+      <div className={`flex items-center text-xs ${color}`}>
+        <Clock size={14} className="mr-1.5" />
+        <span>
+          {new Date(deadline).toLocaleDateString("id-ID", {
+            weekday: "short",
+            month: "short",
+            day: "numeric",
+          })}
+        </span>
+      </div>
+      <span
+        className={`text-xs px-2 py-0.5 rounded-full bg-opacity-10 ${color} ${color.replace(
+          "text",
+          "bg"
+        )}`}
+      >
+        {status}
+      </span>
+    </div>
   );
 };
 

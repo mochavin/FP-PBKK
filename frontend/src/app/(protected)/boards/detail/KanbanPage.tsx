@@ -34,6 +34,7 @@ const KanbanPage: React.FC = () => {
   const [isAddListModalOpen, setIsAddListModalOpen] = React.useState(false);
   const [isAddCardModalOpen, setIsAddCardModalOpen] = useState(false);
   const [isDeleteCardModalOpen, setIsDeleteCardModalOpen] = useState(false);
+  const [isLoadingDeleteCard, setIsLoadingDeleteCard] = useState(false);
   const [cardToDelete, setCardToDelete] = useState<{
     listId: string;
     cardId: string;
@@ -147,6 +148,7 @@ const KanbanPage: React.FC = () => {
     if (!board) return;
 
     const loadingToast = toast.loading("Deleting card...");
+    setIsLoadingDeleteCard(true);
     try {
       await deleteCard(board.id, listId, cardId);
       await mutate();
@@ -156,6 +158,7 @@ const KanbanPage: React.FC = () => {
       console.error("Failed to delete card:", error);
     }
     toast.dismiss(loadingToast);
+    setIsLoadingDeleteCard(false);
   };
 
   const handleDeleteList = async (listId: string) => {
@@ -173,7 +176,7 @@ const KanbanPage: React.FC = () => {
   };
 
   return (
-    <div>
+    <div className="container mx-auto px-4">
       <Breadcrumb />
       <div className="flex justify-between items-center my-4 mx-6">
         <h1 className="text-2xl font-bold">{board.name}</h1>
@@ -208,6 +211,7 @@ const KanbanPage: React.FC = () => {
           setIsDeleteCardModalOpen(false);
           setCardToDelete(null);
         }}
+        isLoading={isLoadingDeleteCard}
         onSubmit={handleDeleteCardConfirm}
         cardTitle={cardToDelete?.title}
       />
