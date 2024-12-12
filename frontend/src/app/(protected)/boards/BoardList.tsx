@@ -16,29 +16,66 @@ import {
 import { Button } from "@/components/ui/button";
 import { LayoutGrid, Trash2 } from "lucide-react";
 import Link from "next/link";
-import { Board } from "@/app/types/board";
+import { Board, Member, User as UserType } from "@/app/types/board";
 import { CreateBoardCard } from "./CreateBoardCard";
-import { mutate, useSWRConfig } from "swr";
+import { mutate } from "swr";
 import Cookies from "js-cookie";
 import { toast } from "react-hot-toast";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Pencil } from "lucide-react";
 import { Input } from "@/components/ui/input";
 
 interface BoardListProps {
   boards: Board[];
+  users: UserType[];
 }
 
-export default function BoardList({ boards }: BoardListProps) {
+export default function BoardList({ boards, users }: BoardListProps) {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [boardToDelete, setBoardToDelete] = useState<string | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [boardToEdit, setBoardToEdit] = useState<string | null>(null);
+  const [isEditMembersOpen, setIsEditMembersOpen] = useState(false);
+  const [boardToEditMembers, setBoardToEditMembers] = useState<string | null>(
+    null
+  );
+  const [members, setMembers] = useState<Array<Member> | null>(null);
+  const [membersIds, setMembersIds] = useState<Array<string> | null>(null);
   const [newBoardName, setNewBoardName] = useState("");
+
+  useEffect(() => {
+    console.log(users, members);
+  }, [members, users]);
+
+  const openEditMembers = (boardId: string) => {
+    setBoardToEditMembers(boardId);
+    const boardMembersIds =
+      boards
+        .find((board) => board.id === boardId)
+        ?.members?.map((member) => member.id) ?? [];
+    const tmpMembers: Member[] = users?.map((user) => ({
+      id: user.ID,
+      email: user.Email,
+      username: user.Username,
+      isMember: boardMembersIds.includes(user.ID),
+    }));
+    setMembers(tmpMembers ?? null);
+    setIsEditMembersOpen(true);
+    console.log(tmpMembers);
+  };
 
   const openDeleteDialog = (boardId: string) => {
     setBoardToDelete(boardId);
     setIsDeleteDialogOpen(true);
+  };
+
+  const toggleMember = (memberId: string) => {
+    const tmpPrev = members?.map((member) =>
+      member.id === memberId
+        ? { ...member, isMember: !member.isMember }
+        : member
+    );
+    setMembers(tmpPrev ?? null);
   };
 
   const handleDelete = async () => {
@@ -154,15 +191,27 @@ export default function BoardList({ boards }: BoardListProps) {
               </CardHeader>
               <CardContent className="pt-4">
                 <p className="text-sm text-gray-600">
-                  Created by {board.owner.username}
+                  Board owner: {board.owner.username}
+                </p>
+                <p className="text-sm text-gray-600">
+                  Board members:{" "}
+                  {board?.members?.map((member) => member.username).toString()}
                 </p>
               </CardContent>
               <CardFooter>
-                <Link href={`/boards/detail?boardId=${board.id}`} passHref>
-                  <Button variant="outline" className="w-full">
-                    Open Board
+                <div className="flex gap-2">
+                  <Link href={`/boards/detail?boardId=${board.id}`} passHref>
+                    <Button variant="outline" className="w-full">
+                      Open Board
+                    </Button>
+                  </Link>
+                  <Button
+                    variant="outline"
+                    onClick={() => openEditMembers(board.id)}
+                  >
+                    Edit Members
                   </Button>
-                </Link>
+                </div>
               </CardFooter>
             </Card>
           ))}
@@ -197,9 +246,7 @@ export default function BoardList({ boards }: BoardListProps) {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Edit Board</DialogTitle>
-            <DialogDescription>
-              Enter a new name for your board.
-            </DialogDescription>
+            <DialogDescription>Edit board name</DialogDescription>
           </DialogHeader>
           <div className="py-4">
             <Input
@@ -207,6 +254,48 @@ export default function BoardList({ boards }: BoardListProps) {
               onChange={(e) => setNewBoardName(e.target.value)}
               placeholder="Board name"
             />
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setIsEditDialogOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="default"
+              onClick={handleUpdate}
+              disabled={!newBoardName.trim()}
+            >
+              Update
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* edit member dialog */}
+      <Dialog open={isEditMembersOpen} onOpenChange={setIsEditMembersOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Board Members</DialogTitle>
+            <DialogDescription>
+              Click name to update board members
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4 flex gap-2 flex-wrap">
+            {members?.map((member) => (
+              <div
+                key={member.id}
+                className={
+                  member.isMember
+                    ? "bg-green-50 hover:cursor-pointer bg-opacity-50 rounded-md px-2 py-[1px] w-fit border-green-700 border-2"
+                    : "bg-gray-50 hover:cursor-pointer bg-opacity-50 rounded-md px-2 py-[1px] w-fit border-gray-700 border-2"
+                }
+                onClick={() => toggleMember(member.id)}
+              >
+                {member.username}
+              </div>
+            ))}
           </div>
           <DialogFooter>
             <Button
