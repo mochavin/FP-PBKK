@@ -1,12 +1,4 @@
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import {
   Card,
   CardContent,
   CardFooter,
@@ -19,11 +11,9 @@ import Link from "next/link";
 import { Board, Member, User as UserType } from "@/app/types/board";
 import { CreateBoardCard } from "./CreateBoardCard";
 import { mutate } from "swr";
-import Cookies from "js-cookie";
 import { toast } from "react-hot-toast";
 import { useEffect, useState } from "react";
 import { Pencil } from "lucide-react";
-import { Input } from "@/components/ui/input";
 import { deleteBoard, updateBoardMembers, updateBoardName } from "@/lib/api";
 import { DeleteBoardModal } from "./DeleteBoardModal";
 import { EditBoardNameModal } from "./EditBoardNameModal";
@@ -45,7 +35,6 @@ export default function BoardList({ boards, users }: BoardListProps) {
     null
   );
   const [members, setMembers] = useState<Array<Member> | null>(null);
-  const [membersIds, setMembersIds] = useState<Array<string> | null>(null);
   const [selectedBoard, setSelectedBoard] = useState("");
 
   useEffect(() => {
@@ -90,7 +79,7 @@ export default function BoardList({ boards, users }: BoardListProps) {
     const loadingToast = toast.loading("Deleting board...");
     setIsLoading(true);
     try {
-      const response = await deleteBoard(boardToDelete);
+      await deleteBoard(boardToDelete);
 
       mutate("/board/");
       toast.dismiss(loadingToast);

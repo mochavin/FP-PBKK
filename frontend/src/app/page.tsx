@@ -7,7 +7,7 @@ export default function Home() {
 
   useEffect(() => {
     router.push("/boards");
-  }, []);
+  }, [router]);
 
   return <div>Redirecting...</div>;
 }

@@ -12,8 +12,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
-import { mutate, useSWRConfig } from "swr";
-import Cookies from "js-cookie";
+import { mutate } from "swr";
 import toast from "react-hot-toast";
 import { createBoard } from "@/lib/api";
 

@@ -29,9 +29,9 @@ const DeleteCardModal: React.FC<DeleteCardModalProps> = ({
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Delete Card</DialogTitle>
-          <DialogDescription>
-            Are you sure you want to delete "{cardTitle}"? This action cannot be undone.
-          </DialogDescription>
+            <DialogDescription>
+            Are you sure you want to delete &ldquo;{cardTitle}&rdquo;? This action cannot be undone.
+            </DialogDescription>
         </DialogHeader>
         <DialogFooter>
           <Button variant="outline" onClick={onClose}>
