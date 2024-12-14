@@ -2,6 +2,8 @@
 
 A full-stack Trello clone built with Next.js and Go, featuring real-time collaboration and a modern UI.
 
+![image](https://github.com/user-attachments/assets/d0bdaa86-5b44-4dbf-be0a-fd53c450bcf6)
+
 [Watch Demo Video](https://youtu.be/GuPkAMnygio)
 
 ## Features
