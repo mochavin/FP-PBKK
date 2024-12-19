@@ -1,13 +1,6 @@
 "use client";
-import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import Redirect from "./components/Redirect";
 
 export default function Home() {
-  const router = useRouter();
-
-  useEffect(() => {
-    router.push("/boards");
-  }, [router]);
-
-  return <div>Redirecting...</div>;
+  return <Redirect to="/boards" />;
 }

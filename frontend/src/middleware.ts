@@ -1,6 +1,28 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { jwtVerify } from "jose"; // Use jose for JWT verification
+import { jwtVerify } from "jose";
+
+const JWT_SECRET = process.env.SUPABASE_JWT_SECRET;
+
+if (!JWT_SECRET) {
+  throw new Error("SUPABASE_JWT_SECRET environment variable is not set.");
+}
+
+const secret = new TextEncoder().encode(JWT_SECRET);
+
+function createRedirect(url: string, request: NextRequest) {
+  return NextResponse.redirect(new URL(url, request.url));
+}
+
+async function verifyToken(token: string) {
+  try {
+    await jwtVerify(token, secret);
+    return true;
+  } catch (error) {
+    console.error("JWT verification failed:", error);
+    return false;
+  }
+}
 
 export async function middleware(request: NextRequest) {
   const token = request.cookies.get("token");
@@ -12,26 +34,23 @@ export async function middleware(request: NextRequest) {
   ) {
     // If already logged in, redirect to boards
     if (token) {
-      return NextResponse.redirect(new URL("/boards", request.url));
+      return createRedirect("/boards", request);
     }
     return NextResponse.next();
   }
 
   // Protected routes - require auth
   if (!token) {
-    return NextResponse.redirect(new URL("/login", request.url));
+    return createRedirect("/login", request);
   }
 
   // Verify JWT token
-  try {
-    const secret = new TextEncoder().encode(process.env.SUPABASE_JWT_SECRET);
-    await jwtVerify(token.value, secret);
+  const isValidToken = await verifyToken(token.value);
+  if (isValidToken) {
     return NextResponse.next();
-  } catch (error) {
-    // Invalid token - redirect to login
-    console.log("Invalid token:", error);
-    const response = NextResponse.redirect(new URL("/login", request.url));
-    response.cookies.delete("token"); // Properly delete the cookie
+  } else {
+    const response = createRedirect("/login", request);
+    response.cookies.delete("token");
     return response;
   }
 }
