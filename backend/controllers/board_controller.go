@@ -402,6 +402,12 @@ func RemoveBoardMember(c *gin.Context) {
 		return
 	}
 
+	// if userId is the owner, return error
+	if board.OwnerID == userID {
+		c.JSON(http.StatusForbidden, gin.H{"error": "You cannot remove the owner from the board"})
+		return
+	}
+
 	// Check if user is a member of the board
 	var user models.User
 	if err := config.DB.Where("id = ?", userID).First(&user).Error; err != nil {

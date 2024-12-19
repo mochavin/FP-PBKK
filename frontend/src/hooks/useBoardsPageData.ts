@@ -8,14 +8,9 @@ export function useBoardsPageData() {
     error: boardsError,
     isLoading: boardsLoading,
   } = useSWR<Board[]>("/board/", fetcher);
-  const {
-    data: users,
-    error: usersError,
-    isLoading: usersLoading,
-  } = useSWR<User[]>("/board/users", fetcher);
 
-  const isLoading = boardsLoading || usersLoading;
-  const error = boardsError || usersError;
+  const isLoading = boardsLoading;
+  const error = boardsError;
 
-  return { boards, users, error, isLoading };
+  return { boards, error, isLoading };
 }

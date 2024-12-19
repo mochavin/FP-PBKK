@@ -153,18 +153,29 @@ export const createBoard = async (boardName: string) => {
   if (!res.ok) throw new Error("Failed to create board");
 };
 
-export const updateBoardMembers = async (
-  boardId: string,
-  members: string[]
-) => {
+export const addBoardMembers = async (boardId: string, userId: string) => {
   const res = await fetch(`${BASE_URL}/board/${boardId}/members`, {
-    method: "PUT",
+    method: "POST",
     headers: {
       authorization: `Bearer ${Cookies.get("token")}`,
     },
     body: JSON.stringify({
-      userIds: members,
+      userId: userId,
     }),
   });
   if (!res.ok) throw new Error("Failed to update board members");
+};
+
+export const deleteBoardMember = async (boardId: string, userId: string) => {
+  const res = await fetch(`${BASE_URL}/board/${boardId}/members/${userId}`, {
+    method: "DELETE",
+    headers: {
+      authorization: `Bearer ${Cookies.get("token")}`,
+    },
+  });
+
+  if (!res.ok) {
+    const errorData = await res.json();
+    throw new Error(errorData.error || "Failed to delete board member");
+  }
 };

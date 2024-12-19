@@ -8,9 +8,14 @@ import {
 import { Button } from "@/components/ui/button";
 import { LayoutGrid, Trash2, UserIcon, Users, Pencil } from "lucide-react";
 import Link from "next/link";
-import { Board, Member, User as UserType } from "@/app/types/board";
-import { useState } from "react";
-import { deleteBoard, updateBoardMembers, updateBoardName } from "@/lib/api";
+import { Board, Member } from "@/app/types/board";
+import { useEffect, useState } from "react";
+import {
+  addBoardMembers,
+  deleteBoard,
+  deleteBoardMember,
+  updateBoardName,
+} from "@/lib/api";
 import { mutate } from "swr";
 import { toast } from "react-hot-toast";
 import { DeleteBoardModal } from "./DeleteBoardModal";
@@ -19,10 +24,9 @@ import { EditMembersModal } from "./EditMembersModal";
 
 interface BoardItemProps {
   board: Board;
-  users: UserType[];
 }
 
-export default function BoardItem({ board, users }: BoardItemProps) {
+export default function BoardItem({ board }: BoardItemProps) {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isLoadding, setIsLoading] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -30,32 +34,19 @@ export default function BoardItem({ board, users }: BoardItemProps) {
   const [members, setMembers] = useState<Array<Member> | null>(null);
   const [selectedBoard, setSelectedBoard] = useState("");
 
+  useEffect(() => {
+    setMembers(board.members);
+  }, [board.members]);
+
   const openEditMembers = () => {
     setSelectedBoard(board.name);
-    const boardMembersIds =
-      board
-        ?.members?.map((member) => member.id) ?? [];
-    const tmpMembers: Member[] = users?.map((user) => ({
-      id: user.ID,
-      email: user.Email,
-      username: user.Username,
-      isMember: boardMembersIds.includes(user.ID),
-    }));
+    const tmpMembers: Member[] = board.members;
     setMembers(tmpMembers ?? null);
     setIsEditMembersOpen(true);
   };
 
   const openDeleteDialog = () => {
     setIsDeleteDialogOpen(true);
-  };
-
-  const toggleMember = (memberId: string) => {
-    const tmpPrev = members?.map((member) =>
-      member.id === memberId
-        ? { ...member, isMember: !member.isMember }
-        : member
-    );
-    setMembers(tmpPrev ?? null);
   };
 
   const handleDelete = async () => {
@@ -72,7 +63,6 @@ export default function BoardItem({ board, users }: BoardItemProps) {
       console.error("Error deleting board:", error);
     } finally {
       setIsLoading(false);
-      setIsDeleteDialogOpen(false);
     }
   };
 
@@ -97,17 +87,13 @@ export default function BoardItem({ board, users }: BoardItemProps) {
     }
   };
 
-  const handleUpdateMembers = async () => {
-    if (!members) return;
-
+  const handleUpdateMembers = async (memberId: string) => {
     const loadingToast = toast.loading("Updating members...");
-    const boardMembersIds = members
-      .filter((member) => member.isMember)
-      .map((member) => member.id);
+
     setIsLoading(true);
     try {
-      await updateBoardMembers(board.id, boardMembersIds);
-      mutate("/board/");
+      await addBoardMembers(board.id, memberId);
+      await mutate("/board/");
       toast.dismiss(loadingToast);
       toast.success(`Board ${selectedBoard} updated successfully`);
     } catch (error) {
@@ -115,15 +101,27 @@ export default function BoardItem({ board, users }: BoardItemProps) {
       toast.error("Failed to update board");
       console.error("Error updating board:", error);
     } finally {
-      setIsEditMembersOpen(false);
       setIsLoading(false);
     }
   };
 
+  const handleRemoveMember = async (memberId: string) => {
+    const loadingToast = toast.loading("Removing member...");
+    try {
+      await deleteBoardMember(board.id, memberId);
+      await mutate("/board/");
+      toast.success("Member removed successfully");
+    } catch (error) {
+      console.log(error);
+      toast.error(
+        error instanceof Error ? error.message : "Failed to remove member"
+      );
+    }
+    toast.dismiss(loadingToast);
+  };
+
   return (
-    <Card
-      className="hover:shadow-xl transition-all duration-300 border-gray-200"
-    >
+    <Card className="hover:shadow-xl transition-all duration-300 border-gray-200">
       <CardHeader className="bg-gradient-to-r from-gray-50 to-gray-100">
         <CardTitle className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
@@ -176,16 +174,10 @@ export default function BoardItem({ board, users }: BoardItemProps) {
       </CardContent>
       <CardFooter className="pt-4">
         <div className="flex gap-2">
-          <Link
-            href={`/boards/detail?boardId=${board.id}`}
-            className="flex-1"
-          >
+          <Link href={`/boards/detail?boardId=${board.id}`} className="flex-1">
             <Button variant="default">Open Board</Button>
           </Link>
-          <Button
-            variant="outline"
-            onClick={openEditMembers}
-          >
+          <Button variant="outline" onClick={openEditMembers}>
             Edit Members
           </Button>
         </div>
@@ -208,7 +200,7 @@ export default function BoardItem({ board, users }: BoardItemProps) {
         onClose={() => setIsEditMembersOpen(false)}
         onUpdate={handleUpdateMembers}
         members={members}
-        onToggleMember={toggleMember}
+        onRemoveMember={handleRemoveMember}
       />
     </Card>
   );
