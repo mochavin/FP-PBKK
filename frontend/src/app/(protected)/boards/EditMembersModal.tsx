@@ -1,6 +1,7 @@
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Member } from "@/app/types/board";
+import { MemberList } from "./MemberList";
 
 interface EditMembersModalProps {
   isOpen: boolean;
@@ -26,21 +27,7 @@ export function EditMembersModal({
           <DialogTitle>Edit Board Members</DialogTitle>
           <DialogDescription>Click name to update board members</DialogDescription>
         </DialogHeader>
-        <div className="py-4 flex gap-2 flex-wrap">
-          {members?.map((member) => (
-            <div
-              key={member.id}
-              className={
-                member.isMember
-                  ? "bg-green-50 hover:cursor-pointer bg-opacity-50 rounded-md px-2 py-[1px] w-fit border-green-700 border-2"
-                  : "bg-gray-50 hover:cursor-pointer bg-opacity-50 rounded-md px-2 py-[1px] w-fit border-gray-700 border-2"
-              }
-              onClick={() => onToggleMember(member.id)}
-            >
-              {member.username}
-            </div>
-          ))}
-        </div>
+        <MemberList members={members} onToggleMember={onToggleMember} />
         <DialogFooter>
           <Button variant="outline" onClick={onClose}>
             Cancel

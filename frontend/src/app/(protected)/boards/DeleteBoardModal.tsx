@@ -1,6 +1,6 @@
-"use client"
+"use client";
 
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -8,13 +8,14 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog"
+} from "@/components/ui/dialog";
+import { useCallback } from "react";
 
 interface DeleteBoardModalProps {
-  isOpen: boolean
-  onClose: () => void
-  onDelete: () => void
-  isLoading?: boolean
+  isOpen: boolean;
+  onClose: () => void;
+  onDelete: () => void;
+  isLoading?: boolean;
 }
 
 export function DeleteBoardModal({
@@ -23,8 +24,16 @@ export function DeleteBoardModal({
   onDelete,
   isLoading = false,
 }: DeleteBoardModalProps) {
+    const handleClose = useCallback(() => {
+        onClose();
+    }, [onClose]);
+
+    const handleDelete = useCallback(() => {
+        onDelete();
+    }, [onDelete]);
+
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Delete Board</DialogTitle>
@@ -34,14 +43,14 @@ export function DeleteBoardModal({
           </DialogDescription>
         </DialogHeader>
         <DialogFooter>
-          <Button variant="outline" onClick={onClose}>
+          <Button variant="outline" onClick={handleClose}>
             Cancel
           </Button>
-          <Button variant="destructive" onClick={onDelete} disabled={isLoading}>
+          <Button variant="destructive" onClick={handleDelete} disabled={isLoading}>
             {isLoading ? "Deleting..." : "Delete"}
           </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
-  )
+  );
 }

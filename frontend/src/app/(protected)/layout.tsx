@@ -6,15 +6,19 @@ import { LogoutButton } from "@/components/logout-button";
 import { UserProvider, useUser } from "@/contexts/user-context";
 import { LoadingState } from "@/components/LoadingState";
 
-function Layout({ children }: { children: React.ReactNode }) {
+function AuthGuard({ children }: { children: React.ReactNode }) {
   const router = useRouter();
-  const { user, loading } = useUser();
-
   useEffect(() => {
     if (!Cookies.get("token")) {
       router.replace("/login");
     }
   }, [router]);
+
+  return <>{children}</>;
+}
+
+function Layout({ children }: { children: React.ReactNode }) {
+  const { user, loading } = useUser();
 
   if (loading) {
     return <LoadingState />;
@@ -27,7 +31,7 @@ function Layout({ children }: { children: React.ReactNode }) {
           <div className="flex items-center justify-between">
             <h1 className="text-2xl font-bold">Kanban</h1>
             <div className="flex items-center gap-4">
-                {user && <span>Welcome, <strong>{user.username}</strong></span>}
+              {user && <span>Welcome, <strong>{user.username}</strong></span>}
               <LogoutButton />
             </div>
           </div>
@@ -38,7 +42,6 @@ function Layout({ children }: { children: React.ReactNode }) {
   );
 }
 
-// Wrap the layout with UserProvider
 export default function ProtectedLayout({
   children,
 }: {
@@ -46,7 +49,9 @@ export default function ProtectedLayout({
 }) {
   return (
     <UserProvider>
-      <Layout>{children}</Layout>
+      <AuthGuard>
+        <Layout>{children}</Layout>
+      </AuthGuard>
     </UserProvider>
   );
 }
