@@ -28,7 +28,7 @@ func ConnectDB() {
 	// Tambahkan konfigurasi koneksi
 	pgConfig := postgres.Config{
 		DSN:                  dsn,
-		PreferSimpleProtocol: true,
+		PreferSimpleProtocol: false,
 	}
 
 	var err error
